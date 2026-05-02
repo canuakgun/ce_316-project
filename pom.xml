@@ -45,7 +45,7 @@
                 <artifactId>javafx-maven-plugin</artifactId>
                 <version>0.0.8</version>
                 <configuration>
-                    <mainClass>com.ce316.Main</mainClass>
+                    <mainClass>com.ce316.iae.IaeApp</mainClass>
                 </configuration>
             </plugin>
         </plugins>
