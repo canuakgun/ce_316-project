@@ -5,39 +5,45 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Aggregates all {@link StudentResult} entries for one project run.
+ * Aggregates all {@link StudentResult} entries from one project run.
  */
 public class Report {
 
+    private int id;
     private int projectId;
     private Instant timestamp = Instant.now();
     private final List<StudentResult> results = new ArrayList<>();
 
-    public int getProjectId() {
-        return projectId;
-    }
+    private int totalCount;
+    private int successCount;
+    private int failCount;
 
-    public void setProjectId(int projectId) {
-        this.projectId = projectId;
-    }
+    public int getId() { return id; }
+    public void setId(int id) { this.id = id; }
 
-    public Instant getTimestamp() {
-        return timestamp;
-    }
+    public int getProjectId() { return projectId; }
+    public void setProjectId(int projectId) { this.projectId = projectId; }
 
-    public void setTimestamp(Instant timestamp) {
-        this.timestamp = timestamp;
-    }
+    public Instant getTimestamp() { return timestamp; }
+    public void setTimestamp(Instant timestamp) { this.timestamp = timestamp; }
 
-    public List<StudentResult> getResults() {
-        return results;
+    public List<StudentResult> getResults() { return results; }
+
+    public int getTotalCount() { return totalCount; }
+    public int getSuccessCount() { return successCount; }
+    public int getFailCount() { return failCount; }
+
+    /** Recalculates totalCount, successCount, failCount from current results list. */
+    public void computeCounts() {
+        totalCount = results.size();
+        successCount = (int) results.stream()
+                .filter(r -> r.getStatus() == SubmissionStatus.SUCCESS)
+                .count();
+        failCount = totalCount - successCount;
     }
 
     public String getSummary() {
-        long pass = results.stream()
-                .filter(r -> r.getStatus() == SubmissionStatus.SUCCESS)
-                .count();
-        long fail = results.size() - pass;
-        return pass + " passed, " + fail + " failed or errors";
+        computeCounts();
+        return successCount + " / " + totalCount + " passed  (" + failCount + " failed or error)";
     }
 }
