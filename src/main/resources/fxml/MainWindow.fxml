@@ -1,15 +1,86 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
 
-<BorderPane xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.ce316.iae.ui.MainWindowController">
+<BorderPane xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.ce316.iae.ui.MainWindowController">
+
+    <!-- TOP -->
     <top>
-        <Label style="-fx-font-size: 16px; -fx-padding: 12;"
-               text="IAE – Integrated Assignment Environment"/>
+        <VBox>
+
+            <Label text="IAE – Integrated Assignment Environment"
+                   style="-fx-font-size: 16px; -fx-padding: 12;"/>
+
+            <MenuBar>
+
+                <menus>
+
+                    <Menu text="File">
+                        <items>
+                            <MenuItem text="New Project"/>
+                            <MenuItem text="Open"/>
+                            <MenuItem text="Save"/>
+                        </items>
+                    </Menu>
+
+                </menus>
+
+            </MenuBar>
+
+            <ToolBar>
+
+                <Button fx:id="runButton"
+                        text="Run Tests"
+                        onAction="#handleRunTests"/>
+
+                <Button fx:id="refreshButton"
+                        text="Refresh"
+                        onAction="#handleRefresh"/>
+
+                <Separator/>
+
+                <Label text="Language:"/>
+
+                <ComboBox fx:id="languageComboBox"/>
+
+            </ToolBar>
+
+        </VBox>
     </top>
+
+    <!-- CENTER -->
     <center>
-        <Label text="Project skeleton loaded. Add menus and tables next."
-               BorderPane.alignment="CENTER"/>
+
+        <SplitPane dividerPositions="0.3">
+
+            <!-- LEFT -->
+            <VBox spacing="10">
+
+                <Label text="Student Results"/>
+
+                <ListView fx:id="resultsListView"/>
+
+            </VBox>
+
+            <!-- RIGHT -->
+            <VBox spacing="10">
+
+                <Label text="Test Configuration"/>
+
+                <TextArea fx:id="inputTextArea"
+                          promptText="Enter test inputs here"/>
+
+                <TextArea fx:id="outputTextArea"
+                          promptText="Enter expected outputs here"/>
+
+                <fx:include source="ResultsView.fxml"/>
+
+            </VBox>
+
+        </SplitPane>
+
     </center>
+
 </BorderPane>

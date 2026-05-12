@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.ce316.iae.ui.ResultsViewController"
+      spacing="10">
+    <Label text="RESULTS VIEW LOADED"/>
+
+
+    <!-- SUMMARY -->
+    <Label text="Results Summary"
+           style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
+
+    <!-- TABLE -->
+    <TableView fx:id="resultsTable"
+               prefHeight="300">
+
+        <columns>
+
+            <TableColumn fx:id="studentIdColumn"
+                         text="Student ID"
+                         prefWidth="200"/>
+
+            <TableColumn fx:id="statusColumn"
+                         text="Status"
+                         prefWidth="150"/>
+
+        </columns>
+
+    </TableView>
+
+    <!-- DIFF AREA -->
+    <Label text="Diff Output"/>
+
+    <TextArea fx:id="diffTextArea"
+              editable="false"
+              wrapText="true"
+              prefHeight="200"/>
+
+</VBox>
