@@ -1,14 +1,13 @@
 package com.ce316.iae.ui;
 
 import com.ce316.iae.model.StudentResult;
+import com.ce316.iae.model.SubmissionStatus;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.cell.PropertyValueFactory;
-
-import java.util.List;
 
 public class ResultsViewController implements ResultsObserver {
 
@@ -49,14 +48,12 @@ public class ResultsViewController implements ResultsObserver {
     }
 
     @Override
-    public void onResultsUpdated(List<StudentResult> results) {
+    public void onStudentProcessed(StudentResult result) {
 
         Platform.runLater(() -> {
 
-            resultsTable.getItems().clear();
-
-            if (results != null) {
-                resultsTable.getItems().addAll(results);
+            if (result != null) {
+                resultsTable.getItems().add(result);
             }
         });
     }
@@ -64,15 +61,18 @@ public class ResultsViewController implements ResultsObserver {
     private void loadDummyResults() {
 
         StudentResult r1 = new StudentResult();
-        r1.setStudentId("Alice");
+        r1.setStudentId("Mahamadou");
+        r1.setStatus(SubmissionStatus.SUCCESS);
         r1.setDiffText("Expected: Hello\nActual: Hello");
 
         StudentResult r2 = new StudentResult();
-        r2.setStudentId("Bob");
+        r2.setStudentId("Mams");
+        r2.setStatus(SubmissionStatus.WRONG_OUTPUT);
         r2.setDiffText("Expected: 42\nActual: 41");
 
         StudentResult r3 = new StudentResult();
-        r3.setStudentId("Charlie");
+        r3.setStudentId("MS");
+        r3.setStatus(SubmissionStatus.COMPILE_ERROR);
         r3.setDiffText("Compile error");
 
         resultsTable.getItems().addAll(r1, r2, r3);
