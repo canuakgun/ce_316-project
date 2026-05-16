@@ -116,7 +116,11 @@ public class ConfigDialogController {
         config.setInterpreted(interpretedCheckBox.isSelected());
 
         try {
-            configurationManager.update(config);
+            if (config.getId() == 0) {
+                configurationManager.create(config);
+            } else {
+                configurationManager.update(config);
+            }
             refreshList();
             setStatus("Configuration saved: " + name);
         } catch (Exception e) {
