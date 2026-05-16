@@ -1,42 +1,67 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox xmlns:fx="http://javafx.com/fxml/1"
+<!--
+    ResultsView.fxml — Center/right panel showing the results table
+    and diff TextArea (fx:included from MainWindow.fxml).
+
+    Controller: com.ce316.iae.ui.ResultsViewController
+-->
+<VBox xmlns="http://javafx.com/javafx/17"
+      xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.ce316.iae.ui.ResultsViewController"
-      spacing="10">
-    <Label text="RESULTS VIEW LOADED"/>
+      spacing="6">
 
+    <padding><Insets top="8" right="8" bottom="8" left="8"/></padding>
 
-    <!-- SUMMARY -->
-    <Label text="Results Summary"
-           style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
+    <!-- ── Summary bar ── -->
+    <Label fx:id="summaryLabel"
+           text="No results yet."
+           style="-fx-font-size: 13px; -fx-font-weight: bold;"/>
+    <Separator/>
 
-    <!-- TABLE -->
+    <!-- ── Results TableView ── -->
     <TableView fx:id="resultsTable"
-               prefHeight="300">
+               VBox.vgrow="ALWAYS">
+
+        <!-- placeholder must be a Node, not a String -->
+        <placeholder>
+            <Label text="Run a project to see results."
+                   style="-fx-text-fill: #888888; -fx-font-style: italic;"/>
+        </placeholder>
 
         <columns>
-
+            <!-- Student ID -->
             <TableColumn fx:id="studentIdColumn"
                          text="Student ID"
-                         prefWidth="200"/>
+                         prefWidth="180"/>
 
+            <!-- Status (colour-coded by the controller's CellFactory) -->
             <TableColumn fx:id="statusColumn"
                          text="Status"
-                         prefWidth="150"/>
+                         prefWidth="160"/>
 
+            <!-- Error / info message -->
+            <TableColumn fx:id="errorColumn"
+                         text="Error / Info"
+                         prefWidth="400"/>
         </columns>
-
     </TableView>
 
-    <!-- DIFF AREA -->
-    <Label text="Diff Output"/>
+    <!-- ── Diff area label ── -->
+    <Label text="Output Diff (Expected vs. Actual):"
+           style="-fx-font-size: 12px; -fx-font-weight: bold;"/>
 
+    <!-- ── Diff TextArea ── -->
     <TextArea fx:id="diffTextArea"
+              VBox.vgrow="SOMETIMES"
+              prefHeight="160"
               editable="false"
               wrapText="true"
-              prefHeight="200"/>
+              promptText="Click a row to see the diff."
+              style="-fx-font-family: monospace; -fx-font-size: 12px;"/>
 
 </VBox>

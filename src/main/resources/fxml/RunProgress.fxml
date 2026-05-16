@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<!--
+    RunProgress.fxml — Modal progress dialog shown during a pipeline run.
+    Controller: com.ce316.iae.ui.RunProgressController
+-->
+<VBox xmlns="http://javafx.com/javafx/17"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.ce316.iae.ui.RunProgressController"
+      spacing="14" prefWidth="400" prefHeight="140"
+      style="-fx-background-color: white;">
+
+    <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+
+    <!-- Status message -->
+    <Label fx:id="statusLabel"
+           text="Starting…"
+           wrapText="true"
+           style="-fx-font-size: 13px;"/>
+
+    <!-- Progress bar — fills the width -->
+    <ProgressBar fx:id="progressBar"
+                 maxWidth="Infinity"
+                 prefHeight="18"/>
+
+    <!-- Cancel button aligned to the right -->
+    <HBox alignment="CENTER_RIGHT">
+        <Button fx:id="cancelButton"
+                text="Cancel"
+                onAction="#handleCancel"
+                cancelButton="true"/>
+    </HBox>
+
+</VBox>

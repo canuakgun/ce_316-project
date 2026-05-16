@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<!--
+    ProjectDialog.fxml — Create / edit a project.
+    Controller: com.ce316.iae.ui.ProjectDialogController
+-->
+<VBox xmlns="http://javafx.com/javafx/17"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.ce316.iae.ui.ProjectDialogController"
+      spacing="12" prefWidth="520">
+
+    <padding><Insets top="16" right="16" bottom="16" left="16"/></padding>
+
+    <!-- Project name -->
+    <Label text="Project Name:" style="-fx-font-weight:bold;"/>
+    <TextField fx:id="nameField" promptText="e.g. Sorting Assignment Spring 2025"/>
+
+    <!-- Language configuration -->
+    <Label text="Language Configuration:" style="-fx-font-weight:bold;"/>
+    <ComboBox fx:id="configComboBox" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+
+    <!-- Submissions directory -->
+    <Label text="Submissions Directory:" style="-fx-font-weight:bold;"/>
+    <HBox spacing="8">
+        <TextField fx:id="submissionsDirField" promptText="Path to folder containing student ZIPs"
+                   HBox.hgrow="ALWAYS"/>
+        <Button text="Browse…" onAction="#handleBrowseDirectory"/>
+    </HBox>
+
+    <Separator/>
+
+    <!-- Test cases -->
+    <Label text="Test Cases:" style="-fx-font-weight:bold;"/>
+
+    <!-- Input row -->
+    <GridPane hgap="8" vgap="4">
+        <columnConstraints>
+            <ColumnConstraints hgrow="ALWAYS"/>
+            <ColumnConstraints hgrow="ALWAYS"/>
+            <ColumnConstraints minWidth="70" maxWidth="70"/>
+        </columnConstraints>
+        <Label text="Input Args"        GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+        <Label text="Expected Output"   GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+        <TextField fx:id="inputArgsField"    promptText="e.g. banana apple"
+                   GridPane.columnIndex="0"  GridPane.rowIndex="1"/>
+        <TextField fx:id="expectedOutputField" promptText="e.g. apple banana"
+                   GridPane.columnIndex="1"  GridPane.rowIndex="1"/>
+        <Button text="Add" onAction="#handleAddTestCase"
+                GridPane.columnIndex="2" GridPane.rowIndex="1"
+                maxWidth="Infinity"/>
+    </GridPane>
+
+    <!-- Test case list -->
+    <ListView fx:id="testCaseListView" prefHeight="120">
+        <placeholder>
+            <Label text="No test cases yet."/>
+        </placeholder>
+    </ListView>
+
+    <Button text="Remove Selected" onAction="#handleRemoveTestCase"
+            alignment="CENTER_RIGHT"/>
+
+    <Separator/>
+
+    <!-- Validation error -->
+    <Label fx:id="errorLabel" text="" style="-fx-text-fill: red;" visible="false"/>
+
+    <!-- OK / Cancel -->
+    <HBox spacing="10" alignment="CENTER_RIGHT">
+        <Button text="Cancel"  onAction="#handleCancel"/>
+        <Button text="OK"      onAction="#handleConfirm"
+                style="-fx-font-weight:bold;" defaultButton="true"/>
+    </HBox>
+
+</VBox>

@@ -1,86 +1,109 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<BorderPane xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.ce316.iae.ui.MainWindowController">
 
-    <!-- TOP -->
+<BorderPane xmlns="http://javafx.com/javafx/17"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.ce316.iae.ui.MainWindowController"
+            prefWidth="1100" prefHeight="700">
+
     <top>
         <VBox>
 
-            <Label text="IAE – Integrated Assignment Environment"
-                   style="-fx-font-size: 16px; -fx-padding: 12;"/>
-
+            <!-- ── MenuBar ── -->
             <MenuBar>
 
-                <menus>
+                <!-- File menu -->
+                <Menu text="File">
+                    <MenuItem text="New Project…"   onAction="#handleNewProject"/>
+                    <MenuItem text="Open Project…"  onAction="#handleOpenProject"/>
+                    <MenuItem text="Save Project"   onAction="#handleSaveProject"/>
+                    <SeparatorMenuItem/>
+                    <MenuItem text="Exit"           onAction="#handleExit"/>
+                </Menu>
 
-                    <Menu text="File">
-                        <items>
-                            <MenuItem text="New Project"/>
-                            <MenuItem text="Open"/>
-                            <MenuItem text="Save"/>
-                        </items>
-                    </Menu>
+                <!-- Configuration menu -->
+                <Menu text="Configuration">
+                    <MenuItem text="Manage Configurations"    onAction="#handleManageConfigurations"/>
+                    <SeparatorMenuItem/>
+                    <MenuItem text="Import Configuration…"    onAction="#handleImportConfiguration"/>
+                    <MenuItem text="Export Configuration…"    onAction="#handleExportConfiguration"/>
+                </Menu>
 
-                </menus>
+                <!-- Help menu -->
+                <Menu text="Help">
+                    <MenuItem text="User Manual"  onAction="#handleUserManual"/>
+                    <MenuItem text="About"        onAction="#handleAbout"/>
+                </Menu>
 
             </MenuBar>
 
+            <!-- ── ToolBar ── -->
             <ToolBar>
-
-                <Button fx:id="runButton"
-                        text="Run Tests"
-                        onAction="#handleRunTests"/>
-
-                <Button fx:id="refreshButton"
-                        text="Refresh"
-                        onAction="#handleRefresh"/>
-
+                <Button text="New"     onAction="#handleNewProject"  style="-fx-font-weight:bold;"/>
+                <Button text="Open"    onAction="#handleOpenProject"/>
+                <Button text="Save"    onAction="#handleSaveProject"/>
                 <Separator/>
-
-                <Label text="Language:"/>
-
-                <ComboBox fx:id="languageComboBox"/>
-
+                <Button text="▶  Run"  onAction="#handleRunTests"
+                        style="-fx-font-weight:bold; -fx-text-fill: #1a6e1a;"/>
+                <Separator/>
+                <Button text="Refresh" onAction="#handleRefresh"/>
+                <Separator/>
+                <Button text="Help"    onAction="#handleUserManual"/>
             </ToolBar>
 
         </VBox>
     </top>
 
-    <!-- CENTER -->
+    <!-- ============================================================
+         CENTER: SplitPane — Left info panel | Right results view
+         ============================================================ -->
     <center>
+        <SplitPane dividerPositions="0.25" SplitPane.resizableWithParent="true">
 
-        <SplitPane dividerPositions="0.3">
+            <!-- ── Left Panel: project info ── -->
+            <VBox spacing="6" minWidth="180">
+                <padding><Insets top="8" right="8" bottom="8" left="8"/></padding>
 
-            <!-- LEFT -->
-            <VBox spacing="10">
+                <Label text="Project Details"
+                       style="-fx-font-weight:bold; -fx-font-size:13px;"/>
+                <Separator/>
 
-                <Label text="Student Results"/>
-
-                <ListView fx:id="resultsListView"/>
-
+                <!-- Populated by MainWindowController.refreshProjectPanel() -->
+                <ListView fx:id="projectInfoListView"
+                          VBox.vgrow="ALWAYS"
+                          style="-fx-font-family: monospace; -fx-font-size: 12px;"/>
             </VBox>
 
-            <!-- RIGHT -->
-            <VBox spacing="10">
-
-                <Label text="Test Configuration"/>
-
-                <TextArea fx:id="inputTextArea"
-                          promptText="Enter test inputs here"/>
-
-                <TextArea fx:id="outputTextArea"
-                          promptText="Enter expected outputs here"/>
-
-                <fx:include source="ResultsView.fxml"/>
-
-            </VBox>
+            <!-- ── Center/Right Panel: embedded ResultsView ── -->
+            <fx:include fx:id="resultsView"
+                        source="ResultsView.fxml"/>
 
         </SplitPane>
-
     </center>
+
+    <!-- ============================================================
+         BOTTOM: Status bar
+         ============================================================ -->
+    <bottom>
+        <HBox spacing="12" alignment="CENTER_LEFT"
+              style="-fx-background-color: #f0f0f0; -fx-border-color: #cccccc; -fx-border-width: 1 0 0 0;">
+            <padding><Insets top="4" right="10" bottom="4" left="10"/></padding>
+
+            <!-- Status text — grows to fill available space -->
+            <Label fx:id="statusLabel" text="Ready."
+                   HBox.hgrow="ALWAYS"
+                   maxWidth="Infinity"
+                   style="-fx-font-size: 12px;"/>
+
+            <!-- Progress bar — hidden when idle -->
+            <ProgressBar fx:id="statusProgressBar"
+                         prefWidth="180" prefHeight="14"
+                         visible="false"/>
+        </HBox>
+    </bottom>
 
 </BorderPane>
