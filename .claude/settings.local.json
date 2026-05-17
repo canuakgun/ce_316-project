@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir *)",
+      "Bash(mvn compile *)",
+      "Bash(ls target *)",
+      "Bash(find target *)",
+      "PowerShell(Get-ChildItem *)",
+      "Read(//c/Users/samal/.m2/wrapper/**)",
+      "Read(//c/Users/samal/.m2/**)",
+      "Bash(/c/Users/samal/.m2/wrapper/dists/apache-maven-3.8.5-bin/5i5jha092a3i37g0paqnfr15e0/apache-maven-3.8.5/bin/mvn -q compile)",
+      "Bash(/c/Users/samal/.m2/wrapper/dists/apache-maven-3.8.5-bin/5i5jha092a3i37g0paqnfr15e0/apache-maven-3.8.5/bin/mvn compile *)",
+      "Bash(/c/Users/samal/.m2/wrapper/dists/apache-maven-3.8.5-bin/5i5jha092a3i37g0paqnfr15e0/apache-maven-3.8.5/bin/mvn -q clean compile)",
+      "Bash(/c/Users/samal/.m2/wrapper/dists/apache-maven-3.8.5-bin/5i5jha092a3i37g0paqnfr15e0/apache-maven-3.8.5/bin/mvn clean *)",
+      "PowerShell(Test-Path *)",
+      "PowerShell(Remove-Item *)",
+      "Bash(/c/Users/samal/.m2/wrapper/dists/apache-maven-3.8.5-bin/5i5jha092a3i37g0paqnfr15e0/apache-maven-3.8.5/bin/mvn -q package -DskipTests)",
+      "Bash(/c/Users/samal/.m2/wrapper/dists/apache-maven-3.8.5-bin/5i5jha092a3i37g0paqnfr15e0/apache-maven-3.8.5/bin/mvn package *)",
+      "Bash(java -jar target/IntegratedAssignmentEnvironment-1.0-SNAPSHOT.jar)",
+      "Bash(/c/Users/samal/.m2/wrapper/dists/apache-maven-3.8.5-bin/5i5jha092a3i37g0paqnfr15e0/apache-maven-3.8.5/bin/mvn -Dtest=BugfixSmokeTest test)"
+    ]
+  }
+}
