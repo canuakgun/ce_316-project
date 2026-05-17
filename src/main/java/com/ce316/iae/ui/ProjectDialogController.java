@@ -5,6 +5,8 @@ import com.ce316.iae.model.Project;
 import com.ce316.iae.model.TestCase;
 import com.ce316.iae.service.ConfigurationManager;
 import com.ce316.iae.service.ProjectManager;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.stage.DirectoryChooser;
@@ -23,7 +25,7 @@ public class ProjectDialogController {
     @FXML private ComboBox<Configuration> configComboBox;
     @FXML private TextField submissionsDirField;
 
-    @FXML private ListView<String> testCaseListView;
+    @FXML private ListView<String> testCaseListView; // shows formatted strings; real data in pendingTestCases
 
     @FXML private TextField inputArgsField;
     @FXML private TextField expectedOutputField;
@@ -39,6 +41,9 @@ public class ProjectDialogController {
 
     private Project existingProject;
     private Project committedProject;
+
+    /** Backing list of test cases; ListView shows their toString-style summary. */
+    private final ObservableList<TestCase> pendingTestCases = FXCollections.observableArrayList();
 
     // ---------------------------------------------------------------
     // INIT FROM MAIN CONTROLLER
@@ -64,6 +69,11 @@ public class ProjectDialogController {
     public void initialize() {
         errorLabel.setVisible(false);
         testCaseListView.setPlaceholder(new Label("No test cases yet."));
+
+        // Render each TestCase as "<args>  →  <expected>"; raw object kept in the model
+        testCaseListView.setItems(FXCollections.observableArrayList());
+        pendingTestCases.addListener((javafx.collections.ListChangeListener<TestCase>) change ->
+                refreshTestCaseListView());
     }
 
     // ---------------------------------------------------------------
@@ -124,7 +134,10 @@ public class ProjectDialogController {
             return;
         }
 
-        testCaseListView.getItems().add(args + " → " + expected);
+        TestCase tc = new TestCase();
+        tc.setInputArgs(args);
+        tc.setExpectedOutput(expected);
+        pendingTestCases.add(tc);
 
         inputArgsField.clear();
         expectedOutputField.clear();
@@ -134,7 +147,19 @@ public class ProjectDialogController {
     @FXML
     private void handleRemoveTestCase() {
         int idx = testCaseListView.getSelectionModel().getSelectedIndex();
-        if (idx >= 0) testCaseListView.getItems().remove(idx);
+        if (idx >= 0 && idx < pendingTestCases.size()) {
+            pendingTestCases.remove(idx);
+        }
+    }
+
+    /** Mirrors pendingTestCases into the ListView's display strings. */
+    private void refreshTestCaseListView() {
+        testCaseListView.getItems().clear();
+        for (TestCase tc : pendingTestCases) {
+            String args = tc.getInputArgs() == null ? "" : tc.getInputArgs();
+            String exp  = tc.getExpectedOutput() == null ? "" : tc.getExpectedOutput();
+            testCaseListView.getItems().add(args + "  →  " + exp);
+        }
     }
 
     @FXML
@@ -162,7 +187,10 @@ public class ProjectDialogController {
         }
 
         if (existingProject == null) {
-            committedProject = projectManager.createProject(name, dir);
+            // Build a fresh in-memory project, attach config + tests, THEN save once.
+            committedProject = new Project();
+            committedProject.setName(name);
+            committedProject.setSubmissionsDirectory(dir);
         } else {
             committedProject = existingProject;
             committedProject.setName(name);
@@ -172,18 +200,20 @@ public class ProjectDialogController {
 
         committedProject.setConfiguration(config);
 
-        for (String item : testCaseListView.getItems()) {
-            TestCase tc = new TestCase();
-
-            String[] parts = item.split("→");
-
-            tc.setInputArgs(parts[0].trim());
-            tc.setExpectedOutput(parts[1].trim());
-
+        for (TestCase tc : pendingTestCases) {
             committedProject.getTestCases().add(tc);
         }
 
-        if (existingProject != null) {
+        projectManager.setCurrentProject(committedProject);
+        if (existingProject == null) {
+            // INSERT new project + its test cases in one transaction
+            try {
+                projectManager.persistNewProject(committedProject);
+            } catch (Exception e) {
+                showError("Save failed: " + e.getMessage());
+                return;
+            }
+        } else {
             projectManager.saveProject();
         }
 
@@ -207,13 +237,8 @@ public class ProjectDialogController {
 
         configComboBox.getSelectionModel().select(p.getConfiguration());
 
-        testCaseListView.getItems().clear();
-
-        for (TestCase tc : p.getTestCases()) {
-            testCaseListView.getItems().add(
-                    tc.getInputArgs() + " → " + tc.getExpectedOutput()
-            );
-        }
+        pendingTestCases.clear();
+        pendingTestCases.addAll(p.getTestCases());
     }
 
     // ---------------------------------------------------------------

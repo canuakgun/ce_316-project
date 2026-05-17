@@ -3,22 +3,27 @@ package com.ce316.iae.ui;
 import com.ce316.iae.model.Configuration;
 import com.ce316.iae.model.Project;
 import com.ce316.iae.model.Report;
+import com.ce316.iae.model.StudentResult;
 import com.ce316.iae.persistence.PersistenceManager;
 import com.ce316.iae.service.ConfigurationManager;
 import com.ce316.iae.service.ProjectManager;
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.web.WebView;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
@@ -26,13 +31,12 @@ import java.util.Optional;
 /**
  * Controller for the main application window (MainWindow.fxml).
  *
- * Responsibilities (Dev 4 — Core Frontend Lead):
- *  - Drive the MenuBar: File / Configuration / Help menus
- *  - Drive the ToolBar: New, Open, Save, Run, Help buttons
- *  - Populate the left-panel ListView with project information labels
- *  - Delegate all business operations to ProjectManager / ConfigurationManager
- *  - Hand off results to ResultsViewController via the ResultsObserver interface
- *  - Update the status bar during pipeline execution
+ * Responsibilities:
+ *  - Drive the MenuBar and ToolBar
+ *  - Show all DB-persisted projects in the left ListView (click to select)
+ *  - Show details + latest results for the selected project
+ *  - Edit / Delete the selected project
+ *  - Run the grading pipeline on a background thread and stream results
  */
 public class MainWindowController {
 
@@ -40,7 +44,10 @@ public class MainWindowController {
     // FXML-injected UI nodes
     // ---------------------------------------------------------------
 
-    /** Left panel: shows project name, config, dir, test-case count. */
+    /** Left panel top: list of all projects in the DB. */
+    @FXML private ListView<Project> projectsListView;
+
+    /** Left panel bottom: details (name/config/dir/tests) for the selection. */
     @FXML private ListView<String> projectInfoListView;
 
     /** Status bar label at the bottom of the window. */
@@ -60,8 +67,11 @@ public class MainWindowController {
     private final ProjectManager        projectManager;
     private final ConfigurationManager  configurationManager;
 
-    /** Currently loaded project (may be null before the user opens/creates one). */
+    /** Currently selected/loaded project. */
     private Project currentProject;
+
+    /** Guards against double-clicks on Run while a task is already executing. */
+    private boolean runInProgress = false;
 
     // ---------------------------------------------------------------
     // Constructor
@@ -79,8 +89,27 @@ public class MainWindowController {
 
     @FXML
     public void initialize() {
-        // Hide progress bar until a run starts
         statusProgressBar.setVisible(false);
+
+        // Render projects as "id — name"
+        projectsListView.setCellFactory(lv -> new ListCell<>() {
+            @Override
+            protected void updateItem(Project p, boolean empty) {
+                super.updateItem(p, empty);
+                setText(empty || p == null ? null : "#" + p.getId() + "  " + p.getName());
+            }
+        });
+
+        // Selection in the project list drives currentProject + detail pane
+        projectsListView.getSelectionModel().selectedItemProperty()
+                .addListener((obs, oldP, newP) -> {
+                    if (newP != null) {
+                        loadSelectedProject(newP.getId());
+                    }
+                });
+
+        refreshProjectList();
+        refreshProjectPanel();
         setStatus("Ready.");
     }
 
@@ -88,57 +117,26 @@ public class MainWindowController {
     // FILE MENU
     // ---------------------------------------------------------------
 
-    /** File → New Project… : opens the ProjectDialog to create a project. */
     @FXML
     private void handleNewProject() {
         openProjectDialog(null);
     }
 
-    /**
-     * File → Open Project… : lists all projects stored in the DB and lets
-     * the user pick one by name. Uses {@link ProjectManager#listProjects()}
-     * and {@link ProjectManager#openProject(int)} — the actual API exposed
-     * by the ProjectManager (projects are DB-backed, not file-backed).
-     */
     @FXML
     private void handleOpenProject() {
-        List<Project> allProjects = projectManager.listProjects();
-        if (allProjects.isEmpty()) {
-            showInfo("No projects found in the database. Create a new project first.");
+        // The sidebar already lists projects — this menu item just focuses it.
+        List<Project> all = projectManager.listProjects();
+        if (all.isEmpty()) {
+            showInfo("No projects in the database. Click ⊕ New to create one.");
             return;
         }
-
-        // Build a choice list of "id — name" strings
-        List<String> choices = allProjects.stream()
-                .map(p -> p.getId() + " — " + p.getName())
-                .collect(java.util.stream.Collectors.toList());
-
-        ChoiceDialog<String> dialog = new ChoiceDialog<>(choices.get(0), choices);
-        dialog.setTitle("Open Project");
-        dialog.setHeaderText("Select a project to open:");
-        dialog.setContentText("Project:");
-        Optional<String> chosen = dialog.showAndWait();
-        if (chosen.isEmpty()) return;
-
-        // Parse the id from the selected string ("42 — My Project")
-        int projectId = Integer.parseInt(chosen.get().split(" — ")[0].trim());
-
-        try {
-            currentProject = projectManager.openProject(projectId);
-            if (currentProject == null) {
-                showError("Open failed", "Project not found in database (id=" + projectId + ").");
-                return;
-            }
-            // Sync ProjectManager's internal reference
-            projectManager.setCurrentProject(currentProject);
-            refreshProjectPanel();
-            setStatus("Project loaded: " + currentProject.getName());
-        } catch (Exception e) {
-            showError("Failed to open project", e.getMessage());
+        refreshProjectList();
+        projectsListView.requestFocus();
+        if (!projectsListView.getItems().isEmpty()) {
+            projectsListView.getSelectionModel().selectFirst();
         }
     }
 
-    /** File → Save Project : persists the current project. */
     @FXML
     private void handleSaveProject() {
         if (currentProject == null) {
@@ -153,7 +151,42 @@ public class MainWindowController {
         }
     }
 
-    /** File → Exit */
+    @FXML
+    private void handleEditProject() {
+        if (currentProject == null) {
+            showInfo("Select a project in the sidebar first.");
+            return;
+        }
+        openProjectDialog(currentProject);
+    }
+
+    @FXML
+    private void handleDeleteProject() {
+        if (currentProject == null) {
+            showInfo("Select a project in the sidebar first.");
+            return;
+        }
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        confirm.setTitle("Delete Project");
+        confirm.setHeaderText(null);
+        confirm.setContentText("Permanently delete \"" + currentProject.getName()
+                + "\" and all its reports?");
+        if (confirm.showAndWait().filter(b -> b == ButtonType.OK).isEmpty()) return;
+
+        try {
+            projectManager.setCurrentProject(currentProject);
+            projectManager.deleteProject();
+            String name = currentProject.getName();
+            currentProject = null;
+            if (resultsViewController != null) resultsViewController.clearResults();
+            refreshProjectList();
+            refreshProjectPanel();
+            setStatus("Deleted: " + name);
+        } catch (Exception e) {
+            showError("Delete failed", e.getMessage());
+        }
+    }
+
     @FXML
     private void handleExit() {
         Platform.exit();
@@ -163,13 +196,11 @@ public class MainWindowController {
     // CONFIGURATION MENU
     // ---------------------------------------------------------------
 
-    /** Configuration → Manage Configurations : opens ConfigDialog. */
     @FXML
     private void handleManageConfigurations() {
         openConfigDialog();
     }
 
-    /** Configuration → Import Configuration… */
     @FXML
     private void handleImportConfiguration() {
         FileChooser chooser = new FileChooser();
@@ -187,7 +218,6 @@ public class MainWindowController {
         }
     }
 
-    /** Configuration → Export Configuration… */
     @FXML
     private void handleExportConfiguration() {
         List<Configuration> configs = configurationManager.listConfigurations();
@@ -195,7 +225,6 @@ public class MainWindowController {
             showInfo("No configurations available to export.");
             return;
         }
-        // Let the user pick which configuration to export
         ChoiceDialog<String> pick = new ChoiceDialog<>(
                 configs.get(0).getName(),
                 configs.stream().map(Configuration::getName).toArray(String[]::new));
@@ -229,13 +258,28 @@ public class MainWindowController {
     // HELP MENU
     // ---------------------------------------------------------------
 
-    /** Help → User Manual */
+    /** Opens the bundled user manual inside a WebView window. */
     @FXML
     private void handleUserManual() {
-        showInfo("User manual is located in the docs/ folder of the installation directory.");
+        try {
+            URL manual = getClass().getResource("/manual/index.html");
+            if (manual == null) {
+                showInfo("User manual not bundled in this build.");
+                return;
+            }
+            WebView view = new WebView();
+            view.getEngine().load(manual.toExternalForm());
+
+            Stage stage = new Stage();
+            stage.setTitle("IAE — User Manual");
+            stage.initOwner(getStage());
+            stage.setScene(new Scene(view, 900, 650));
+            stage.show();
+        } catch (Exception e) {
+            showError("Cannot open manual", e.getMessage());
+        }
     }
 
-    /** Help → About */
     @FXML
     private void handleAbout() {
         showInfo("IAE — Integrated Assignment Environment\nVersion 1.0\n\nCE 316 Software Engineering Project");
@@ -245,56 +289,61 @@ public class MainWindowController {
     // TOOLBAR ACTIONS
     // ---------------------------------------------------------------
 
-    /** Toolbar → Run button (also reachable from a menu action). */
     @FXML
     private void handleRunTests() {
+        if (runInProgress) {
+            // Guard against accidental double-click while pipeline is running
+            return;
+        }
         if (currentProject == null) {
             showInfo("Please open or create a project before running tests.");
             return;
         }
+        if (currentProject.getConfiguration() == null) {
+            showError("Cannot run", "Project has no language configuration. Edit the project to attach one.");
+            return;
+        }
+        if (currentProject.getTestCases().isEmpty()) {
+            showError("Cannot run", "Project has no test cases. Edit the project to add one.");
+            return;
+        }
+        File dir = new File(currentProject.getSubmissionsDirectory() != null
+                ? currentProject.getSubmissionsDirectory() : "");
+        if (!dir.isDirectory()) {
+            showError("Cannot run", "Submissions directory does not exist:\n" + dir);
+            return;
+        }
 
-        // Clear previous results
         if (resultsViewController != null) {
             resultsViewController.clearResults();
         }
 
-        // ProjectManager.buildRunTask() uses its own internal currentProject —
-        // make sure it is in sync with ours.
         projectManager.setCurrentProject(currentProject);
 
-        // Build the background Task (no parameter — PM uses its internal state)
         Task<Report> task = projectManager.buildRunTask();
 
-        // Bind the status bar label to the task's live message updates
-        // (the PM publishes "Extracting…", "Compiling…", "Done — 12 passed…")
-        statusLabel.textProperty().bind(task.messageProperty());
+        // Stream live results into the ResultsView as each student is processed
+        projectManager.getExecutionEngine().clearObservers();
+        if (resultsViewController != null) {
+            projectManager.getExecutionEngine().addObserver(resultsViewController);
+        }
 
-        // Bind the progress bar to the task's progress (0–3 steps → 0.0–1.0)
+        statusLabel.textProperty().bind(task.messageProperty());
         statusProgressBar.progressProperty().bind(task.progressProperty());
         statusProgressBar.setVisible(true);
+        runInProgress = true;
 
         task.setOnSucceeded(event -> Platform.runLater(() -> {
-            // Unbind so we can set text manually afterwards
-            statusLabel.textProperty().unbind();
-            statusProgressBar.progressProperty().unbind();
-            statusProgressBar.setVisible(false);
-
+            cleanupAfterRun();
             Report report = task.getValue();
             if (report != null) {
                 setStatus(report.getSummary());
-                // Push every StudentResult into the ResultsViewController
-                if (resultsViewController != null) {
-                    for (var result : report.getResults()) {
-                        resultsViewController.onStudentProcessed(result);
-                    }
-                }
             }
+            refreshProjectList(); // refresh so the latest report is reflected
         }));
 
         task.setOnFailed(event -> Platform.runLater(() -> {
-            statusLabel.textProperty().unbind();
-            statusProgressBar.progressProperty().unbind();
-            statusProgressBar.setVisible(false);
+            cleanupAfterRun();
             String msg = task.getException() != null
                     ? task.getException().getMessage() : "Unknown error";
             setStatus("Run failed: " + msg);
@@ -306,35 +355,84 @@ public class MainWindowController {
         t.start();
     }
 
-    /** Toolbar → Refresh: reloads the project panel without re-running tests. */
+    private void cleanupAfterRun() {
+        statusLabel.textProperty().unbind();
+        statusProgressBar.progressProperty().unbind();
+        statusProgressBar.setVisible(false);
+        projectManager.getExecutionEngine().clearObservers();
+        runInProgress = false;
+    }
+
     @FXML
     private void handleRefresh() {
+        refreshProjectList();
         refreshProjectPanel();
-        setStatus("Panel refreshed.");
+        setStatus("Refreshed.");
     }
 
     // ---------------------------------------------------------------
     // INTERNAL HELPERS
     // ---------------------------------------------------------------
 
-    /**
-     * Refreshes the left-panel ListView to reflect the currentProject state.
-     * Shows project name, configuration name, submissions directory, and
-     * the number of defined test cases.
-     */
+    /** Reloads the sidebar project list from the DB, preserving selection if possible. */
+    private void refreshProjectList() {
+        int previouslySelectedId = currentProject != null ? currentProject.getId() : -1;
+        List<Project> all = projectManager.listProjects();
+        ObservableList<Project> items = FXCollections.observableArrayList(all);
+        projectsListView.setItems(items);
+        if (previouslySelectedId > 0) {
+            for (Project p : items) {
+                if (p.getId() == previouslySelectedId) {
+                    projectsListView.getSelectionModel().select(p);
+                    break;
+                }
+            }
+        }
+    }
+
+    /** Loads the selected project (with test cases + latest report) from the DB. */
+    private void loadSelectedProject(int projectId) {
+        try {
+            Project loaded = projectManager.openProject(projectId);
+            if (loaded == null) {
+                setStatus("Project not found in DB (id=" + projectId + ").");
+                return;
+            }
+            currentProject = loaded;
+            projectManager.setCurrentProject(loaded);
+            refreshProjectPanel();
+            displayLatestReport(loaded.getId());
+            setStatus("Loaded: " + loaded.getName());
+        } catch (Exception e) {
+            showError("Failed to open project", e.getMessage());
+        }
+    }
+
+    /** Loads the most recent report for the project and pushes its results into the table. */
+    private void displayLatestReport(int projectId) {
+        if (resultsViewController == null) return;
+        resultsViewController.clearResults();
+        projectManager.getReportManager().loadLatestReport(projectId).ifPresent(report -> {
+            for (StudentResult r : report.getResults()) {
+                resultsViewController.onStudentProcessed(r);
+            }
+        });
+    }
+
+    /** Refreshes the left-panel detail rows for the currentProject. */
     private void refreshProjectPanel() {
         projectInfoListView.getItems().clear();
         if (currentProject == null) {
-            projectInfoListView.getItems().add("No project loaded.");
+            projectInfoListView.getItems().add("No project selected.");
             return;
         }
         projectInfoListView.getItems().addAll(
-                "📁  Project : " + currentProject.getName(),
-                "⚙   Config  : " + (currentProject.getConfiguration() != null
+                "Name   : " + currentProject.getName(),
+                "Config : " + (currentProject.getConfiguration() != null
                         ? currentProject.getConfiguration().getName()
                         : "— none —"),
-                "📂  Dir     : " + currentProject.getSubmissionsDirectory(),
-                "🧪  Tests   : " + currentProject.getTestCases().size() + " test case(s)"
+                "Dir    : " + currentProject.getSubmissionsDirectory(),
+                "Tests  : " + currentProject.getTestCases().size() + " test case(s)"
         );
     }
 
@@ -346,7 +444,6 @@ public class MainWindowController {
             Parent root = loader.load();
             ProjectDialogController ctrl = loader.getController();
 
-            // Pass the managers so the dialog can create/update via the service layer
             ctrl.init(projectManager, configurationManager, existing);
 
             Stage dialog = new Stage();
@@ -356,31 +453,29 @@ public class MainWindowController {
             dialog.setScene(new Scene(root));
             dialog.showAndWait();
 
-            // After dialog closes, pick up whatever project the dialog committed
             Project committed = ctrl.getCommittedProject();
             if (committed != null) {
                 currentProject = committed;
                 projectManager.setCurrentProject(currentProject);
+                refreshProjectList();
+                // Re-select the project in the list so details refresh
+                for (Project p : projectsListView.getItems()) {
+                    if (p.getId() == committed.getId()) {
+                        projectsListView.getSelectionModel().select(p);
+                        break;
+                    }
+                }
                 refreshProjectPanel();
                 setStatus("Project ready: " + currentProject.getName());
             }
         } catch (Exception e) {
-
             e.printStackTrace();
-
             Throwable root = e;
-            while (root.getCause() != null) {
-                root = root.getCause();
-            }
-
-            showError(
-                    "FXML Error",
-                    root.getClass().getName() + "\n" + root.getMessage()
-            );
+            while (root.getCause() != null) root = root.getCause();
+            showError("FXML Error", root.getClass().getName() + "\n" + root.getMessage());
         }
     }
 
-    /** Opens the ConfigDialogController in a modal window. */
     private void openConfigDialog() {
         try {
             FXMLLoader loader = new FXMLLoader(
@@ -397,14 +492,12 @@ public class MainWindowController {
         }
     }
 
-    /** Convenience: update the status bar label (always on FX thread). */
     private void setStatus(String message) {
         Platform.runLater(() -> statusLabel.setText(message));
     }
 
-    /** Grab the primary Stage from any FXML node. */
     private Stage getStage() {
-        return (Stage) projectInfoListView.getScene().getWindow();
+        return (Stage) projectsListView.getScene().getWindow();
     }
 
     // ---------------------------------------------------------------

@@ -47,27 +47,32 @@ public class ProjectManager {
     // -----------------------------------------------------------------------
 
     /**
-     * Creates a new project, stamps its creation timestamp, persists it to the
-     * DB (which assigns a DB id), and makes it the current project.
-     *
-     * @param name                 human-readable project name
-     * @param submissionsDirectory absolute path to the student ZIP folder
-     * @return the newly created and DB-persisted project
+     * Creates a new empty project shell (in memory only — caller must attach
+     * a configuration and test cases, then call {@link #persistNewProject(Project)}).
      */
     public Project createProject(String name, String submissionsDirectory) {
         Project project = new Project();
         project.setName(name);
         project.setSubmissionsDirectory(submissionsDirectory);
         project.stampCreatedAt();
+        currentProject = project;
+        return project;
+    }
 
+    /**
+     * Persists a fully populated new project (with its configuration and test
+     * cases attached) to the DB in a single transaction. The DB assigns an id
+     * which is set back onto the project.
+     */
+    public void persistNewProject(Project project) {
+        if (project == null) throw new IllegalArgumentException("project must not be null");
+        project.stampCreatedAt();
         try {
-            pm.saveProject(project); // sets project.id from AUTOINCREMENT
+            pm.saveProject(project); // INSERT project + INSERT test_cases (1 tx)
         } catch (SQLException e) {
             throw new RuntimeException("Failed to create project: " + e.getMessage(), e);
         }
-
         currentProject = project;
-        return project;
     }
 
     /**

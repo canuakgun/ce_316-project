@@ -30,7 +30,7 @@ import java.util.regex.Pattern;
  */
 public class ZipProcessor {
 
-    /** Exactly 9 consecutive digits — SDD §2.2 student-ID pattern. */
+    /** Exactly 9 consecutive digits — matches a Turkish student ID (e.g. 220201085). */
     private static final Pattern STUDENT_ID_PATTERN = Pattern.compile("\\d{9}");
 
     /** Root temp directory where all extracted submissions land. */

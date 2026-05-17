@@ -22,6 +22,9 @@
                     <MenuItem text="Open Project…"  onAction="#handleOpenProject"/>
                     <MenuItem text="Save Project"   onAction="#handleSaveProject"/>
                     <SeparatorMenuItem/>
+                    <MenuItem text="Edit Project…"  onAction="#handleEditProject"/>
+                    <MenuItem text="Delete Project" onAction="#handleDeleteProject"/>
+                    <SeparatorMenuItem/>
                     <MenuItem text="Exit"           onAction="#handleExit"/>
                 </Menu>
 
@@ -43,39 +46,58 @@
 
             <!-- ── ToolBar ── -->
             <ToolBar>
-                <Button text="New"     onAction="#handleNewProject"  style="-fx-font-weight:bold;"/>
-                <Button text="Open"    onAction="#handleOpenProject"/>
-                <Button text="Save"    onAction="#handleSaveProject"/>
+                <Button text="⊕ New"     onAction="#handleNewProject"  style="-fx-font-weight:bold;"/>
+                <Button text="Open"      onAction="#handleOpenProject"/>
+                <Button text="Save"      onAction="#handleSaveProject"/>
                 <Separator/>
-                <Button text="▶  Run"  onAction="#handleRunTests"
+                <Button text="✎ Edit"    onAction="#handleEditProject"/>
+                <Button text="✕ Delete"  onAction="#handleDeleteProject"
+                        style="-fx-text-fill: #b91c1c;"/>
+                <Separator/>
+                <Button text="▶  Run"    onAction="#handleRunTests"
                         style="-fx-font-weight:bold; -fx-text-fill: #1a6e1a;"/>
                 <Separator/>
-                <Button text="Refresh" onAction="#handleRefresh"/>
+                <Button text="Refresh"   onAction="#handleRefresh"/>
                 <Separator/>
-                <Button text="Help"    onAction="#handleUserManual"/>
+                <Button text="Help"      onAction="#handleUserManual"/>
             </ToolBar>
 
         </VBox>
     </top>
 
     <!-- ============================================================
-         CENTER: SplitPane — Left info panel | Right results view
+         CENTER: SplitPane — Left project list | Right results view
          ============================================================ -->
     <center>
-        <SplitPane dividerPositions="0.25" SplitPane.resizableWithParent="true">
+        <SplitPane dividerPositions="0.28" SplitPane.resizableWithParent="true">
 
-            <!-- ── Left Panel: project info ── -->
-            <VBox spacing="6" minWidth="180">
+            <!-- ── Left Panel: project list + details ── -->
+            <VBox spacing="6" minWidth="220">
                 <padding><Insets top="8" right="8" bottom="8" left="8"/></padding>
 
-                <Label text="Project Details"
+                <Label text="Projects"
                        style="-fx-font-weight:bold; -fx-font-size:13px;"/>
                 <Separator/>
 
-                <!-- Populated by MainWindowController.refreshProjectPanel() -->
-                <ListView fx:id="projectInfoListView"
+                <!-- List of all projects in the DB -->
+                <ListView fx:id="projectsListView"
                           VBox.vgrow="ALWAYS"
-                          style="-fx-font-family: monospace; -fx-font-size: 12px;"/>
+                          prefHeight="220"
+                          style="-fx-font-size: 12px;">
+                    <placeholder>
+                        <Label text="No projects yet — click ⊕ New."
+                               style="-fx-text-fill: #888; -fx-font-style: italic;"/>
+                    </placeholder>
+                </ListView>
+
+                <Separator/>
+                <Label text="Details"
+                       style="-fx-font-weight:bold; -fx-font-size:13px;"/>
+
+                <!-- Detail lines for the currently selected project -->
+                <ListView fx:id="projectInfoListView"
+                          prefHeight="140"
+                          style="-fx-font-family: monospace; -fx-font-size: 11px;"/>
             </VBox>
 
             <!-- ── Center/Right Panel: embedded ResultsView ── -->

@@ -62,6 +62,69 @@ public class ConfigurationManager {
     }
 
     /**
+     * Seeds the four built-in language configurations (C, C++, Python 3,
+     * Java single-file) the first time the application is launched. No-op if
+     * the DB already contains any configurations.
+     */
+    public void seedDefaultsIfEmpty() {
+        try {
+            if (!pm.listConfigs().isEmpty()) return;
+        } catch (SQLException e) {
+            System.err.println("ConfigurationManager.seedDefaultsIfEmpty: " + e.getMessage());
+            return;
+        }
+
+        // C
+        Configuration c = new Configuration();
+        c.setName("C Language");
+        c.setCompilerPath("gcc");
+        c.setCompileArgs("-o {OUTPUT_PATH} {SOURCE_FILE}");
+        c.setFileToCompile("main.c");
+        c.setRelativeExecutablePath(isWindows() ? "output.exe" : "output");
+        c.setInterpreted(false);
+        trySeed(c);
+
+        // C++
+        Configuration cpp = new Configuration();
+        cpp.setName("C++ Language");
+        cpp.setCompilerPath("g++");
+        cpp.setCompileArgs("-o {OUTPUT_PATH} {SOURCE_FILE}");
+        cpp.setFileToCompile("main.cpp");
+        cpp.setRelativeExecutablePath(isWindows() ? "output.exe" : "output");
+        cpp.setInterpreted(false);
+        trySeed(cpp);
+
+        // Python 3
+        Configuration py = new Configuration();
+        py.setName("Python 3");
+        py.setCompilerPath(isWindows() ? "python" : "python3");
+        py.setCompileArgs("");
+        py.setFileToCompile("main.py");
+        py.setRelativeExecutablePath("");
+        py.setInterpreted(true);
+        trySeed(py);
+
+        // Java single-file (Java 11+ supports running .java directly)
+        Configuration java = new Configuration();
+        java.setName("Java (Single-File)");
+        java.setCompilerPath("java");
+        java.setCompileArgs("");
+        java.setFileToCompile("Main.java");
+        java.setRelativeExecutablePath("");
+        java.setInterpreted(true);
+        trySeed(java);
+    }
+
+    private void trySeed(Configuration c) {
+        try { pm.saveConfig(c); }
+        catch (SQLException e) { System.err.println("Seed failed for " + c.getName() + ": " + e.getMessage()); }
+    }
+
+    private static boolean isWindows() {
+        return System.getProperty("os.name", "").toLowerCase().contains("win");
+    }
+
+    /**
      * Inserts a new configuration. The DB assigns the id and sets it on the
      * object before returning.
      *

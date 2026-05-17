@@ -134,8 +134,12 @@ public class ExecutionEngine {
             List<String> command = new ArrayList<>();
 
             if (config.isInterpreted()) {
-                // For interpreted languages: interpreter path + source file
-                command.add(config.getCompilerPath());
+                // For interpreted languages: interpreter + source file
+                String interpreter = config.getCompilerPath();
+                if (interpreter == null || interpreter.isBlank()) {
+                    interpreter = "python"; // sensible fallback
+                }
+                command.add(interpreter);
                 File sourceFile = findFile(workingDirectory, config.getFileToCompile());
                 String sourcePath = sourceFile != null
                         ? sourceFile.getAbsolutePath()
@@ -212,8 +216,8 @@ public class ExecutionEngine {
                     continue;
                 }
 
-                // Check if the student ID is a valid 9-digit number
-                if (!submission.getStudentId().matches("\\d{9}")) {
+                // Require exactly a 9-digit student ID per the SDD; otherwise SKIPPED.
+                if (submission.getStudentId() == null || !submission.getStudentId().matches("\\d{9}")) {
                     result.setStatus(SubmissionStatus.SKIPPED);
                     result.setErrorMessage(
                             "Filename does not encode a 9-digit student ID — manual review required");

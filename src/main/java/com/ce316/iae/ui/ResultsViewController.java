@@ -27,9 +27,9 @@ public class ResultsViewController implements ResultsObserver {
     // ---------------------------------------------------------------
 
     @FXML private TableView<StudentResult>               resultsTable;
-    @FXML private TableColumn<StudentResult, String>     studentIdColumn;
-    @FXML private TableColumn<StudentResult, String>     statusColumn;
-    @FXML private TableColumn<StudentResult, String>     errorColumn;
+    @FXML private TableColumn<StudentResult, String>          studentIdColumn;
+    @FXML private TableColumn<StudentResult, SubmissionStatus> statusColumn;
+    @FXML private TableColumn<StudentResult, String>          errorColumn;
 
     /** One-line summary: "12 passed  •  3 failed  •  2 errors" */
     @FXML private Label summaryLabel;
@@ -48,22 +48,22 @@ public class ResultsViewController implements ResultsObserver {
         statusColumn   .setCellValueFactory(new PropertyValueFactory<>("status"));
         errorColumn    .setCellValueFactory(new PropertyValueFactory<>("errorMessage"));
 
-        // Colour-code the Status column for fast visual scanning
+        // Colour-code the Status column — item is now SubmissionStatus enum
         statusColumn.setCellFactory(col -> new TableCell<>() {
             @Override
-            protected void updateItem(String item, boolean empty) {
+            protected void updateItem(SubmissionStatus item, boolean empty) {
                 super.updateItem(item, empty);
                 if (empty || item == null) {
                     setText(null);
                     setStyle("");
                 } else {
-                    setText(item);
+                    setText(item.name());
                     switch (item) {
-                        case "SUCCESS"       -> setTextFill(Color.GREEN);
-                        case "WRONG_OUTPUT"  -> setTextFill(Color.ORANGE);
-                        case "COMPILE_ERROR",
-                             "RUNTIME_ERROR" -> setTextFill(Color.RED);
-                        default              -> setTextFill(Color.GRAY);
+                        case SUCCESS       -> setTextFill(Color.GREEN);
+                        case WRONG_OUTPUT  -> setTextFill(Color.ORANGE);
+                        case COMPILE_ERROR,
+                             RUNTIME_ERROR -> setTextFill(Color.RED);
+                        default            -> setTextFill(Color.GRAY);
                     }
                 }
             }

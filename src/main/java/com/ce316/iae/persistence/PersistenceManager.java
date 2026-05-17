@@ -111,8 +111,45 @@ public class PersistenceManager {
                     FOREIGN KEY (report_id) REFERENCES reports(id) ON DELETE CASCADE
                 )""");
 
+            // --- Schema migrations (safe to run on every start) ---
+            // runMigration() silently ignores "duplicate column" errors so each
+            // ALTER TABLE is safe to execute on every application start regardless
+            // of which schema version the existing database was created with.
+
+            // configurations table
+            runMigration(st, "ALTER TABLE configurations ADD COLUMN compiler_path TEXT");
+            runMigration(st, "ALTER TABLE configurations ADD COLUMN compile_args TEXT");
+            runMigration(st, "ALTER TABLE configurations ADD COLUMN file_to_compile TEXT");
+            runMigration(st, "ALTER TABLE configurations ADD COLUMN relative_executable_path TEXT");
+            runMigration(st, "ALTER TABLE configurations ADD COLUMN interpreted INTEGER NOT NULL DEFAULT 0");
+
+            // projects table
+            runMigration(st, "ALTER TABLE projects ADD COLUMN config_id INTEGER");
+            runMigration(st, "ALTER TABLE projects ADD COLUMN submissions_dir TEXT");
+            runMigration(st, "ALTER TABLE projects ADD COLUMN created_at TEXT");
+
+            // test_cases table
+            runMigration(st, "ALTER TABLE test_cases ADD COLUMN description TEXT");
+
+            // student_results table
+            runMigration(st, "ALTER TABLE student_results ADD COLUMN actual_output TEXT");
+            runMigration(st, "ALTER TABLE student_results ADD COLUMN error_message TEXT");
+            runMigration(st, "ALTER TABLE student_results ADD COLUMN diff_text TEXT");
+
         } catch (SQLException e) {
             throw new RuntimeException("DB init failed: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Runs a DDL migration statement, silently ignoring errors (e.g. "duplicate
+     * column name") so that migrations are safe to re-run on every start.
+     */
+    private void runMigration(Statement st, String ddl) {
+        try {
+            st.execute(ddl);
+        } catch (SQLException ignored) {
+            // column already exists, or other benign schema conflict — skip
         }
     }
 
