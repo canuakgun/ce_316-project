@@ -32,11 +32,11 @@ import java.util.Optional;
  * Controller for the main application window (MainWindow.fxml).
  *
  * Responsibilities:
- *  - Drive the MenuBar and ToolBar
- *  - Show all DB-persisted projects in the left ListView (click to select)
- *  - Show details + latest results for the selected project
- *  - Edit / Delete the selected project
- *  - Run the grading pipeline on a background thread and stream results
+ * - Drive the MenuBar and ToolBar
+ * - Show all DB-persisted projects in the left ListView (click to select)
+ * - Show details + latest results for the selected project
+ * - Edit / Delete the selected project
+ * - Run the grading pipeline on a background thread and stream results
  */
 public class MainWindowController {
 
@@ -45,27 +45,32 @@ public class MainWindowController {
     // ---------------------------------------------------------------
 
     /** Left panel top: list of all projects in the DB. */
-    @FXML private ListView<Project> projectsListView;
+    @FXML
+    private ListView<Project> projectsListView;
 
     /** Left panel bottom: details (name/config/dir/tests) for the selection. */
-    @FXML private ListView<String> projectInfoListView;
+    @FXML
+    private ListView<String> projectInfoListView;
 
     /** Status bar label at the bottom of the window. */
-    @FXML private Label statusLabel;
+    @FXML
+    private Label statusLabel;
 
     /** Progress bar in the status bar (hidden when idle). */
-    @FXML private ProgressBar statusProgressBar;
+    @FXML
+    private ProgressBar statusProgressBar;
 
     /** Reference to the embedded ResultsViewController (fx:include). */
-    @FXML private ResultsViewController resultsViewController;
+    @FXML
+    private ResultsViewController resultsViewController;
 
     // ---------------------------------------------------------------
     // Service layer
     // ---------------------------------------------------------------
 
-    private final PersistenceManager    persistenceManager;
-    private final ProjectManager        projectManager;
-    private final ConfigurationManager  configurationManager;
+    private final PersistenceManager persistenceManager;
+    private final ProjectManager projectManager;
+    private final ConfigurationManager configurationManager;
 
     /** Currently selected/loaded project. */
     private Project currentProject;
@@ -78,8 +83,8 @@ public class MainWindowController {
     // ---------------------------------------------------------------
 
     public MainWindowController() {
-        this.persistenceManager   = PersistenceManager.getInstance();
-        this.projectManager       = new ProjectManager(persistenceManager);
+        this.persistenceManager = PersistenceManager.getInstance();
+        this.projectManager = new ProjectManager(persistenceManager);
         this.configurationManager = new ConfigurationManager(persistenceManager);
     }
 
@@ -171,14 +176,16 @@ public class MainWindowController {
         confirm.setHeaderText(null);
         confirm.setContentText("Permanently delete \"" + currentProject.getName()
                 + "\" and all its reports?");
-        if (confirm.showAndWait().filter(b -> b == ButtonType.OK).isEmpty()) return;
+        if (confirm.showAndWait().filter(b -> b == ButtonType.OK).isEmpty())
+            return;
 
         try {
             projectManager.setCurrentProject(currentProject);
             projectManager.deleteProject();
             String name = currentProject.getName();
             currentProject = null;
-            if (resultsViewController != null) resultsViewController.clearResults();
+            if (resultsViewController != null)
+                resultsViewController.clearResults();
             refreshProjectList();
             refreshProjectPanel();
             setStatus("Deleted: " + name);
@@ -208,7 +215,8 @@ public class MainWindowController {
         chooser.getExtensionFilters().add(
                 new FileChooser.ExtensionFilter("IAE Config Files (*.iaeconfig)", "*.iaeconfig"));
         File selected = chooser.showOpenDialog(getStage());
-        if (selected == null) return;
+        if (selected == null)
+            return;
 
         try {
             configurationManager.importConfig(selected.toPath());
@@ -231,7 +239,8 @@ public class MainWindowController {
         pick.setTitle("Export Configuration");
         pick.setHeaderText("Select the configuration to export:");
         Optional<String> chosen = pick.showAndWait();
-        if (chosen.isEmpty()) return;
+        if (chosen.isEmpty())
+            return;
 
         FileChooser chooser = new FileChooser();
         chooser.setTitle("Save Configuration As");
@@ -239,7 +248,8 @@ public class MainWindowController {
         chooser.getExtensionFilters().add(
                 new FileChooser.ExtensionFilter("IAE Config Files (*.iaeconfig)", "*.iaeconfig"));
         File dest = chooser.showSaveDialog(getStage());
-        if (dest == null) return;
+        if (dest == null)
+            return;
 
         configs.stream()
                 .filter(c -> c.getName().equals(chosen.get()))
@@ -269,7 +279,6 @@ public class MainWindowController {
             }
             WebView view = new WebView();
             view.getEngine().load(manual.toExternalForm());
-
             Stage stage = new Stage();
             stage.setTitle("IAE — User Manual");
             stage.initOwner(getStage());
@@ -282,7 +291,14 @@ public class MainWindowController {
 
     @FXML
     private void handleAbout() {
-        showInfo("IAE — Integrated Assignment Environment\nVersion 1.0\n\nCE 316 Software Engineering Project");
+        Alert about = new Alert(Alert.AlertType.INFORMATION);
+        about.setTitle("About IAE");
+        about.setHeaderText("Integrated Assignment Environment");
+        about.setContentText(
+                "IAE automates grading of student code submissions.\n\n"
+                        + "Compile → Run → Compare pipeline with SQLite persistence.\n\n"
+                        + "CE316 Project — 2025");
+        about.showAndWait();
     }
 
     // ---------------------------------------------------------------
@@ -308,7 +324,8 @@ public class MainWindowController {
             return;
         }
         File dir = new File(currentProject.getSubmissionsDirectory() != null
-                ? currentProject.getSubmissionsDirectory() : "");
+                ? currentProject.getSubmissionsDirectory()
+                : "");
         if (!dir.isDirectory()) {
             showError("Cannot run", "Submissions directory does not exist:\n" + dir);
             return;
@@ -345,7 +362,8 @@ public class MainWindowController {
         task.setOnFailed(event -> Platform.runLater(() -> {
             cleanupAfterRun();
             String msg = task.getException() != null
-                    ? task.getException().getMessage() : "Unknown error";
+                    ? task.getException().getMessage()
+                    : "Unknown error";
             setStatus("Run failed: " + msg);
             showError("Execution error", msg);
         }));
@@ -374,7 +392,10 @@ public class MainWindowController {
     // INTERNAL HELPERS
     // ---------------------------------------------------------------
 
-    /** Reloads the sidebar project list from the DB, preserving selection if possible. */
+    /**
+     * Reloads the sidebar project list from the DB, preserving selection if
+     * possible.
+     */
     private void refreshProjectList() {
         int previouslySelectedId = currentProject != null ? currentProject.getId() : -1;
         List<Project> all = projectManager.listProjects();
@@ -408,9 +429,13 @@ public class MainWindowController {
         }
     }
 
-    /** Loads the most recent report for the project and pushes its results into the table. */
+    /**
+     * Loads the most recent report for the project and pushes its results into the
+     * table.
+     */
     private void displayLatestReport(int projectId) {
-        if (resultsViewController == null) return;
+        if (resultsViewController == null)
+            return;
         resultsViewController.clearResults();
         projectManager.getReportManager().loadLatestReport(projectId).ifPresent(report -> {
             for (StudentResult r : report.getResults()) {
@@ -432,8 +457,7 @@ public class MainWindowController {
                         ? currentProject.getConfiguration().getName()
                         : "— none —"),
                 "Dir    : " + currentProject.getSubmissionsDirectory(),
-                "Tests  : " + currentProject.getTestCases().size() + " test case(s)"
-        );
+                "Tests  : " + currentProject.getTestCases().size() + " test case(s)");
     }
 
     /** Opens the ProjectDialogController in a modal window. */
@@ -471,7 +495,8 @@ public class MainWindowController {
         } catch (Exception e) {
             e.printStackTrace();
             Throwable root = e;
-            while (root.getCause() != null) root = root.getCause();
+            while (root.getCause() != null)
+                root = root.getCause();
             showError("FXML Error", root.getClass().getName() + "\n" + root.getMessage());
         }
     }

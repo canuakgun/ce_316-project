@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.web.*?>
+<?import javafx.geometry.Insets?>
+
+<!--
+    HelpWindow.fxml  —  User Manual window (WebView).
+    Controller: com.ce316.iae.ui.HelpWindowController
+    Resource:   src/main/resources/help/index.html
+-->
+<VBox xmlns="http://javafx.com/javafx/17"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.ce316.iae.ui.HelpWindowController"
+      prefWidth="860" prefHeight="620">
+
+    <!-- ── Header ── -->
+    <HBox style="-fx-background-color: #f0f0f0;
+                 -fx-border-color: #cccccc;
+                 -fx-border-width: 0 0 1 0;
+                 -fx-padding: 8 12 8 12;"
+          alignment="CENTER_LEFT" spacing="8">
+        <Label text="❓  IAE User Manual"
+               style="-fx-font-size: 13px; -fx-font-weight: bold;"/>
+    </HBox>
+
+    <!-- ── WebView fills remaining space ── -->
+    <WebView fx:id="helpWebView" VBox.vgrow="ALWAYS"/>
+
+    <!-- ── Footer ── -->
+    <HBox style="-fx-background-color: #f0f0f0;
+                 -fx-border-color: #cccccc;
+                 -fx-border-width: 1 0 0 0;
+                 -fx-padding: 6 12 6 12;"
+          alignment="CENTER_RIGHT">
+        <Button text="Close" onAction="#handleClose"
+                style="-fx-font-size: 12px; -fx-padding: 4 16 4 16;"/>
+    </HBox>
+
+</VBox>

@@ -18,19 +18,21 @@
 
                 <!-- File menu -->
                 <Menu text="File">
-                    <MenuItem text="New Project…"   onAction="#handleNewProject"/>
+                    <MenuItem text="New Project…"   onAction="#handleNewProject" accelerator="Ctrl+N"/>
                     <MenuItem text="Open Project…"  onAction="#handleOpenProject"/>
-                    <MenuItem text="Save Project"   onAction="#handleSaveProject"/>
+                    <MenuItem text="Save Project"   onAction="#handleSaveProject" accelerator="Ctrl+S"/>
                     <SeparatorMenuItem/>
-                    <MenuItem text="Edit Project…"  onAction="#handleEditProject"/>
+                    <MenuItem text="Edit Project…"  onAction="#handleEditProject" accelerator="Ctrl+E"/>
                     <MenuItem text="Delete Project" onAction="#handleDeleteProject"/>
+                    <SeparatorMenuItem/>
+                    <MenuItem text="Run"            onAction="#handleRunTests"    accelerator="Ctrl+R"/>
                     <SeparatorMenuItem/>
                     <MenuItem text="Exit"           onAction="#handleExit"/>
                 </Menu>
 
                 <!-- Configuration menu -->
                 <Menu text="Configuration">
-                    <MenuItem text="Manage Configurations"    onAction="#handleManageConfigurations"/>
+                    <MenuItem text="Manage Configurations"    onAction="#handleManageConfigurations" accelerator="Ctrl+M"/>
                     <SeparatorMenuItem/>
                     <MenuItem text="Import Configuration…"    onAction="#handleImportConfiguration"/>
                     <MenuItem text="Export Configuration…"    onAction="#handleExportConfiguration"/>
@@ -38,7 +40,7 @@
 
                 <!-- Help menu -->
                 <Menu text="Help">
-                    <MenuItem text="User Manual"  onAction="#handleUserManual"/>
+                    <MenuItem text="User Manual"  onAction="#handleUserManual" accelerator="F1"/>
                     <MenuItem text="About"        onAction="#handleAbout"/>
                 </Menu>
 
