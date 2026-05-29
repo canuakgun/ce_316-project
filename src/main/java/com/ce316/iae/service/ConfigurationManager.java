@@ -113,6 +113,25 @@ public class ConfigurationManager {
         java.setRelativeExecutablePath("");
         java.setInterpreted(true);
         trySeed(java);
+        // Scheme (Racket)
+        Configuration scheme = new Configuration();
+        scheme.setName("Scheme (Racket)");
+        scheme.setCompilerPath("racket");
+        scheme.setCompileArgs("");
+        scheme.setFileToCompile("main.rkt");
+        scheme.setRelativeExecutablePath("");
+        scheme.setInterpreted(true);
+        trySeed(scheme);
+
+        // Prolog (SWI-Prolog)
+        Configuration prolog = new Configuration();
+        prolog.setName("Prolog (SWI-Prolog)");
+        prolog.setCompilerPath("swipl");
+        prolog.setCompileArgs("-g main -t halt -s {SOURCE_FILE}");
+        prolog.setFileToCompile("main.pl");
+        prolog.setRelativeExecutablePath("");
+        prolog.setInterpreted(true);
+        trySeed(prolog);
     }
 
     private void trySeed(Configuration c) {

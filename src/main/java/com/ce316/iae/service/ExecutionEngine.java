@@ -134,17 +134,33 @@ public class ExecutionEngine {
             List<String> command = new ArrayList<>();
 
             if (config.isInterpreted()) {
-                // For interpreted languages: interpreter + source file
                 String interpreter = config.getCompilerPath();
                 if (interpreter == null || interpreter.isBlank()) {
                     interpreter = "python"; // sensible fallback
                 }
-                command.add(interpreter);
                 File sourceFile = findFile(workingDirectory, config.getFileToCompile());
                 String sourcePath = sourceFile != null
                         ? sourceFile.getAbsolutePath()
                         : new File(workingDirectory, config.getFileToCompile()).getAbsolutePath();
-                command.add(sourcePath);
+
+                String args = config.getCompileArgs() != null ? config.getCompileArgs().trim() : "";
+
+                if (!args.isEmpty() && args.contains("{SOURCE_FILE}")) {
+                    // compileArgs contains {SOURCE_FILE} — use it to build the full command
+                    // e.g. Prolog: "-g main -t halt -s {SOURCE_FILE}"
+                    command.add(interpreter);
+                    String expanded = args.replace("{SOURCE_FILE}", sourcePath);
+                    command.addAll(Arrays.asList(expanded.split("\\s+")));
+                } else if (!args.isEmpty()) {
+                    // compileArgs has flags but no placeholder — put them before source file
+                    command.add(interpreter);
+                    command.addAll(Arrays.asList(args.split("\\s+")));
+                    command.add(sourcePath);
+                } else {
+                    // Default: interpreter + sourceFile (Python, Scheme, Java single-file)
+                    command.add(interpreter);
+                    command.add(sourcePath);
+                }
             } else {
                 // For compiled languages: run the binary
                 File binary = findFile(workingDirectory, config.getRelativeExecutablePath());
