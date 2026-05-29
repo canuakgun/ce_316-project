@@ -457,6 +457,43 @@ public class PersistenceManager {
         }
         return Optional.empty();
     }
+    public Optional<Report> loadReportById(int reportId) throws SQLException {
+        String sql = "SELECT id, projectId, runAt, totalCount, successCount, failCount " +
+                "FROM reports WHERE id = ?";
+        try (Connection conn = openConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, reportId);
+            ResultSet rs = ps.executeQuery();
+            if (!rs.next()) return Optional.empty();
+            Report report = new Report();
+            report.setId(rs.getInt("id"));
+            report.setProjectId(rs.getInt("projectId"));
+            report.setTimestamp(Instant.parse(rs.getString("runAt")));
+            loadStudentResultsInto(conn, report);
+            return Optional.of(report);
+        }
+    }
+
+    public List<Report> loadAllReports(int projectId) throws SQLException {
+        List<Report> reports = new ArrayList<>();
+        String sql = "SELECT id, runAt, totalCount, successCount, failCount " +
+                "FROM reports WHERE projectId = ? ORDER BY runAt DESC";
+        try (Connection conn = openConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, projectId);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Report r = new Report();
+                r.setId(rs.getInt("id"));
+                r.setProjectId(projectId);
+                r.setTimestamp(Instant.parse(rs.getString("runAt")));
+                r.setTotalCount(rs.getInt("totalCount"));
+                r.setSuccessCount(rs.getInt("successCount"));
+                reports.add(r);
+            }
+        }
+        return reports;
+    }
 
     private void loadStudentResultsInto(Connection conn, Report report) throws SQLException {
         try (PreparedStatement ps = conn.prepareStatement(

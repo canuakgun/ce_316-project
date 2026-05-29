@@ -103,8 +103,12 @@
             </VBox>
 
             <!-- ── Center/Right Panel: embedded ResultsView ── -->
-            <fx:include fx:id="resultsView"
-                        source="ResultsView.fxml"/>
+            <ComboBox fx:id="reportHistoryComboBox"
+                      maxWidth="Infinity"
+                      promptText="Select a run..."
+                      style="-fx-font-size: 12px;"
+                      VBox.vgrow="NEVER"/>
+            <fx:include fx:id="resultsView" source="ResultsView.fxml"/>
 
         </SplitPane>
     </center>

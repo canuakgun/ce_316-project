@@ -15,6 +15,7 @@ import java.nio.file.Path;
 import java.sql.SQLException;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -102,6 +103,22 @@ public class ReportManager {
             return pm.loadLatestReport(projectId);
         } catch (SQLException e) {
             System.err.println("ReportManager.loadLatestReport: " + e.getMessage());
+            return Optional.empty();
+        }
+    }
+    public List<Report> loadAllReports(int projectId) {
+        try {
+            return pm.loadAllReports(projectId);
+        } catch (SQLException e) {
+            System.err.println("ReportManager.loadAllReports: " + e.getMessage());
+            return Collections.emptyList();
+        }
+    }
+    public Optional<Report> loadReportById(int reportId) {
+        try {
+            return pm.loadReportById(reportId); // geçici — aşağıda açıkladım
+        } catch (SQLException e) {
+            System.err.println("ReportManager.loadReportById: " + e.getMessage());
             return Optional.empty();
         }
     }

@@ -32,6 +32,8 @@ public class Report {
     public int getTotalCount() { return totalCount; }
     public int getSuccessCount() { return successCount; }
     public int getFailCount() { return failCount; }
+    public void setTotalCount(int totalCount) { this.totalCount = totalCount; }
+    public void setSuccessCount(int successCount) { this.successCount = successCount; }
 
     /** Recalculates totalCount, successCount, failCount from current results list. */
     public void computeCounts() {

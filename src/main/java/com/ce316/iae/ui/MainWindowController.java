@@ -64,6 +64,9 @@ public class MainWindowController {
     @FXML
     private ResultsViewController resultsViewController;
 
+    @FXML
+    private ComboBox<String> reportHistoryComboBox;
+
     // ---------------------------------------------------------------
     // Service layer
     // ---------------------------------------------------------------
@@ -434,10 +437,36 @@ public class MainWindowController {
      * table.
      */
     private void displayLatestReport(int projectId) {
-        if (resultsViewController == null)
-            return;
+        if (resultsViewController == null) return;
         resultsViewController.clearResults();
-        projectManager.getReportManager().loadLatestReport(projectId).ifPresent(report -> {
+
+        List<Report> allReports = projectManager.getReportManager().loadAllReports(projectId);
+        if (allReports.isEmpty()) return;
+
+        if (reportHistoryComboBox != null) {
+            reportHistoryComboBox.getItems().clear();
+            for (Report r : allReports) {
+                reportHistoryComboBox.getItems().add(
+                        r.getTimestamp().toString().replace("T", " ").substring(0, 19)
+                                + "  (" + r.getSuccessCount() + "/" + r.getTotalCount() + " passed)"
+                );
+            }
+            reportHistoryComboBox.getSelectionModel().selectFirst();
+            reportHistoryComboBox.setOnAction(e -> {
+                int idx = reportHistoryComboBox.getSelectionModel().getSelectedIndex();
+                if (idx >= 0 && idx < allReports.size()) {
+                    loadReportById(allReports.get(idx).getId());
+                }
+            });
+        }
+
+        loadReportById(allReports.get(0).getId());
+    }
+
+    private void loadReportById(int reportId) {
+        if (resultsViewController == null) return;
+        resultsViewController.clearResults();
+        projectManager.getReportManager().loadReportById(reportId).ifPresent(report -> {
             for (StudentResult r : report.getResults()) {
                 resultsViewController.onStudentProcessed(r);
             }
