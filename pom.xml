@@ -16,21 +16,26 @@
     </properties>
 
     <dependencies>
-        <!-- JavaFX -->
+        <!-- JavaFX (Windows-native classifier so the fat JAR ships the platform
+             DLLs — glass.dll, prism_d3d.dll, etc. Without this, the wrapped .exe
+             would launch but fail with "no suitable pipeline found"). -->
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-controls</artifactId>
             <version>${javafx.version}</version>
+            <classifier>win</classifier>
         </dependency>
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-fxml</artifactId>
             <version>${javafx.version}</version>
+            <classifier>win</classifier>
         </dependency>
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-web</artifactId>
             <version>${javafx.version}</version>
+            <classifier>win</classifier>
         </dependency>
 
         <!-- SQLite (file-based, no server) -->
