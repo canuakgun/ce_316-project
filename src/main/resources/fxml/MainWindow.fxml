@@ -4,134 +4,231 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
+<!--
+    MainWindow.fxml — Oxide theme shell.
 
+    Architecture:
+      BorderPane
+        ├─ top:    MenuBar (only — toolbar removed)
+        └─ center: SplitPane
+                     ├─ Sidebar (darker offset surface, projects list)
+                     └─ StackPane canvas
+                           ├─ VBox content (hero strip, history, results)
+                           └─ Floating Run pill (overlapping CTA)
+
+    The status bar at the bottom is gone — status text and pulse dot
+    moved into the hero strip as a top-right console line.
+-->
 <BorderPane xmlns="http://javafx.com/javafx/17"
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.ce316.iae.ui.MainWindowController"
-            prefWidth="1100" prefHeight="700">
+            prefWidth="1180" prefHeight="760">
 
+    <!-- ──────────────────────────────────────────────────────────
+         TOP: MenuBar only. Toolbar was deleted — the actions that
+         matter daily live as floating buttons in the canvas/sidebar.
+         ────────────────────────────────────────────────────────── -->
     <top>
-        <VBox>
-
-            <!-- ── MenuBar ── -->
-            <MenuBar>
-
-                <!-- File menu -->
-                <Menu text="File">
-                    <MenuItem text="New Project…"   onAction="#handleNewProject" accelerator="Ctrl+N"/>
-                    <MenuItem text="Open Project…"  onAction="#handleOpenProject"/>
-                    <MenuItem text="Save Project"   onAction="#handleSaveProject" accelerator="Ctrl+S"/>
-                    <SeparatorMenuItem/>
-                    <MenuItem text="Edit Project…"  onAction="#handleEditProject" accelerator="Ctrl+E"/>
-                    <MenuItem text="Delete Project" onAction="#handleDeleteProject"/>
-                    <SeparatorMenuItem/>
-                    <MenuItem text="Run"            onAction="#handleRunTests"    accelerator="Ctrl+R"/>
-                    <SeparatorMenuItem/>
-                    <MenuItem text="Exit"           onAction="#handleExit"/>
-                </Menu>
-
-                <!-- Configuration menu -->
-                <Menu text="Configuration">
-                    <MenuItem text="Manage Configurations"    onAction="#handleManageConfigurations" accelerator="Ctrl+M"/>
-                    <SeparatorMenuItem/>
-                    <MenuItem text="Import Configuration…"    onAction="#handleImportConfiguration"/>
-                    <MenuItem text="Export Configuration…"    onAction="#handleExportConfiguration"/>
-                </Menu>
-
-                <!-- Help menu -->
-                <Menu text="Help">
-                    <MenuItem text="User Manual"  onAction="#handleUserManual" accelerator="F1"/>
-                    <MenuItem text="About"        onAction="#handleAbout"/>
-                </Menu>
-
-            </MenuBar>
-
-            <!-- ── ToolBar ── -->
-            <ToolBar>
-                <Button text="⊕ New"     onAction="#handleNewProject"  style="-fx-font-weight:bold;"/>
-                <Button text="Open"      onAction="#handleOpenProject"/>
-                <Button text="Save"      onAction="#handleSaveProject"/>
-                <Separator/>
-                <Button text="✎ Edit"    onAction="#handleEditProject"/>
-                <Button text="✕ Delete"  onAction="#handleDeleteProject"
-                        style="-fx-text-fill: #b91c1c;"/>
-                <Separator/>
-                <Button text="▶  Run"    onAction="#handleRunTests"
-                        style="-fx-font-weight:bold; -fx-text-fill: #1a6e1a;"/>
-                <Separator/>
-                <Button text="Refresh"   onAction="#handleRefresh"/>
-                <Separator/>
-                <Button text="Help"      onAction="#handleUserManual"/>
-            </ToolBar>
-
-        </VBox>
+        <MenuBar>
+            <Menu text="File">
+                <MenuItem text="New Project…"      onAction="#handleNewProject" accelerator="Ctrl+N"/>
+                <MenuItem text="Open Project…"     onAction="#handleOpenProject"/>
+                <MenuItem text="Save Project"      onAction="#handleSaveProject" accelerator="Ctrl+S"/>
+                <SeparatorMenuItem/>
+                <MenuItem text="Edit Project…"     onAction="#handleEditProject" accelerator="Ctrl+E"/>
+                <MenuItem text="Delete Project"    onAction="#handleDeleteProject"/>
+                <SeparatorMenuItem/>
+                <MenuItem text="Run"               onAction="#handleRunTests" accelerator="Ctrl+R"/>
+                <MenuItem text="Refresh"           onAction="#handleRefresh"/>
+                <SeparatorMenuItem/>
+                <MenuItem text="Exit"              onAction="#handleExit"/>
+            </Menu>
+            <Menu text="Configuration">
+                <MenuItem text="Manage Configurations" onAction="#handleManageConfigurations" accelerator="Ctrl+M"/>
+                <SeparatorMenuItem/>
+                <MenuItem text="Import Configuration…" onAction="#handleImportConfiguration"/>
+                <MenuItem text="Export Configuration…" onAction="#handleExportConfiguration"/>
+            </Menu>
+            <Menu text="Help">
+                <MenuItem text="User Manual" onAction="#handleUserManual" accelerator="F1"/>
+                <MenuItem text="About"       onAction="#handleAbout"/>
+            </Menu>
+        </MenuBar>
     </top>
 
-    <!-- ============================================================
-         CENTER: SplitPane — Left project list | Right results view
-         ============================================================ -->
+    <!-- ──────────────────────────────────────────────────────────
+         CENTER: SplitPane — sidebar | canvas (asymmetric, ~28/72)
+         ────────────────────────────────────────────────────────── -->
     <center>
-        <SplitPane dividerPositions="0.28" SplitPane.resizableWithParent="true">
+        <SplitPane dividerPositions="0.26" SplitPane.resizableWithParent="true">
 
-            <!-- ── Left Panel: project list + details ── -->
-            <VBox spacing="6" minWidth="220">
-                <padding><Insets top="8" right="8" bottom="8" left="8"/></padding>
+            <!-- ============================================================
+                 SIDEBAR — offset darker surface, brand + project rail
+                 ============================================================ -->
+            <VBox fx:id="sidebarVBox" styleClass="app-sidebar" minWidth="240" prefWidth="300">
+                <padding><Insets top="22" right="18" bottom="18" left="22"/></padding>
 
-                <Label text="Projects"
-                       style="-fx-font-weight:bold; -fx-font-size:13px;"/>
-                <Separator/>
+                <!-- Brand mark: serif title with an italic accent kicker -->
+                <HBox spacing="0" alignment="BASELINE_LEFT">
+                    <Label text="IAE"            styleClass="brand-mark"/>
+                    <Label text=" · grader"      styleClass="brand-mark-accent"/>
+                </HBox>
+                <Label text="INTEGRATED ASSIGNMENT ENVIRONMENT"
+                       styleClass="label-overline">
+                    <VBox.margin><Insets top="2" bottom="22"/></VBox.margin>
+                </Label>
 
-                <!-- List of all projects in the DB -->
+                <!-- Project action row (frequent verbs as ghost buttons) -->
+                <HBox spacing="4">
+                    <Button text="+ New"
+                            onAction="#handleNewProject"
+                            styleClass="btn-ghost"/>
+                    <Button text="Edit"
+                            onAction="#handleEditProject"
+                            styleClass="btn-ghost"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Button text="Delete"
+                            onAction="#handleDeleteProject"
+                            styleClass="btn-ghost,text-danger"/>
+                </HBox>
+
+                <Region prefHeight="14"/>
+
+                <!-- Projects list -->
+                <Label text="PROJECTS" styleClass="label-overline">
+                    <VBox.margin><Insets bottom="6"/></VBox.margin>
+                </Label>
                 <ListView fx:id="projectsListView"
                           VBox.vgrow="ALWAYS"
-                          prefHeight="220"
-                          style="-fx-font-size: 12px;">
+                          prefHeight="280">
                     <placeholder>
-                        <Label text="No projects yet — click ⊕ New."
-                               style="-fx-text-fill: #888; -fx-font-style: italic;"/>
+                        <VBox alignment="CENTER" spacing="10">
+                            <padding><Insets top="32" right="20" bottom="32" left="20"/></padding>
+                            <Label text="No projects yet"
+                                   styleClass="display-md"/>
+                            <Label text="A project bundles a language configuration,
+a submissions folder, and the test cases used
+to grade student code."
+                                   styleClass="body-sm,text-muted"
+                                   wrapText="true"
+                                   style="-fx-text-alignment: center;"/>
+                            <Button text="Start a project"
+                                    onAction="#handleNewProject"
+                                    styleClass="btn-primary">
+                                <VBox.margin><Insets top="6"/></VBox.margin>
+                            </Button>
+                        </VBox>
                     </placeholder>
                 </ListView>
 
-                <Separator/>
-                <Label text="Details"
-                       style="-fx-font-weight:bold; -fx-font-size:13px;"/>
+                <Region prefHeight="18"/>
 
-                <!-- Detail lines for the currently selected project -->
+                <!-- Details -->
+                <Label text="DETAILS" styleClass="label-overline">
+                    <VBox.margin><Insets bottom="6"/></VBox.margin>
+                </Label>
                 <ListView fx:id="projectInfoListView"
-                          prefHeight="140"
-                          style="-fx-font-family: monospace; -fx-font-size: 11px;"/>
+                          styleClass="list-compact"
+                          prefHeight="120"
+                          minHeight="120"/>
+
+                <Region prefHeight="14"/>
+
+                <!-- Sidebar footer -->
+                <HBox spacing="4" alignment="CENTER_LEFT">
+                    <Button text="Manual"
+                            onAction="#handleUserManual"
+                            styleClass="btn-ghost"/>
+                    <Button text="Configs"
+                            onAction="#handleManageConfigurations"
+                            styleClass="btn-ghost"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Button text="↻"
+                            onAction="#handleRefresh"
+                            styleClass="btn-ghost,btn-icon"/>
+                </HBox>
             </VBox>
 
-            <!-- ── Center/Right Panel: embedded ResultsView ── -->
-            <ComboBox fx:id="reportHistoryComboBox"
-                      maxWidth="Infinity"
-                      promptText="Select a run..."
-                      style="-fx-font-size: 12px;"
-                      VBox.vgrow="NEVER"/>
-            <fx:include fx:id="resultsView" source="ResultsView.fxml"/>
+            <!-- ============================================================
+                 CANVAS — main results area with floating Run CTA.
+                 StackPane holds two siblings:
+                   1. The full-bleed VBox (must fill: maxWidth/Height=Infinity)
+                   2. The floating Run pill (BOTTOM_RIGHT, overlay)
+                 ============================================================ -->
+            <StackPane styleClass="app-canvas">
+
+                <!-- Stack base: page content. maxWidth/Height=Infinity forces
+                     the VBox to grow with the StackPane; otherwise it would
+                     collapse to its computed pref size and leave dead space. -->
+                <VBox maxWidth="Infinity" maxHeight="Infinity">
+
+                    <!-- Thin top progress strip (invisible when idle) -->
+                    <ProgressBar fx:id="statusProgressBar"
+                                 styleClass="progress-thin"
+                                 maxWidth="Infinity"
+                                 prefHeight="3"
+                                 visible="false"
+                                 managed="false"/>
+
+                    <!-- HERO STRIP: title on the left, console line on the right -->
+                    <HBox alignment="CENTER_LEFT" spacing="16">
+                        <padding><Insets top="22" right="32" bottom="14" left="32"/></padding>
+
+                        <VBox spacing="2" HBox.hgrow="ALWAYS" minWidth="0">
+                            <Label text="CURRENT PROJECT" styleClass="hero-eyebrow"/>
+                            <Label fx:id="heroTitleLabel"
+                                   text="Select a project"
+                                   styleClass="display-xl"
+                                   wrapText="false"
+                                   maxWidth="Infinity"/>
+                        </VBox>
+
+                        <!-- Status console line: pulse dot + bound text -->
+                        <HBox alignment="CENTER_RIGHT" spacing="10" minWidth="120">
+                            <Region fx:id="statusDot" styleClass="status-dot"/>
+                            <Label fx:id="statusLabel"
+                                   text="Ready"
+                                   styleClass="status-line"/>
+                        </HBox>
+                    </HBox>
+
+                    <Region styleClass="divider-hairline" maxWidth="Infinity">
+                        <VBox.margin><Insets left="32" right="32"/></VBox.margin>
+                    </Region>
+
+                    <!-- History dropdown — slim, contextual -->
+                    <HBox alignment="CENTER_LEFT" spacing="12">
+                        <padding><Insets top="14" right="32" bottom="6" left="32"/></padding>
+                        <Label text="RUN HISTORY" styleClass="label-overline"/>
+                        <ComboBox fx:id="reportHistoryComboBox"
+                                  promptText="Select a previous run…"
+                                  prefWidth="360"
+                                  minWidth="240"
+                                  HBox.hgrow="NEVER"/>
+                    </HBox>
+
+                    <!-- Embedded ResultsView. Bottom padding is generous so
+                         the floating Run pill (height ~44 + margin 32 = 76)
+                         never overlaps the diff card or its scrollbar. -->
+                    <VBox VBox.vgrow="ALWAYS" maxWidth="Infinity">
+                        <padding><Insets top="6" right="32" bottom="96" left="32"/></padding>
+                        <fx:include fx:id="resultsView" source="ResultsView.fxml"
+                                    VBox.vgrow="ALWAYS"/>
+                    </VBox>
+                </VBox>
+
+                <!-- Floating Run pill — overlay, bottom-right -->
+                <Button fx:id="runButton"
+                        text="▶  Run grading"
+                        onAction="#handleRunTests"
+                        styleClass="btn-pill"
+                        StackPane.alignment="BOTTOM_RIGHT">
+                    <StackPane.margin><Insets right="36" bottom="32"/></StackPane.margin>
+                </Button>
+
+            </StackPane>
 
         </SplitPane>
     </center>
-
-    <!-- ============================================================
-         BOTTOM: Status bar
-         ============================================================ -->
-    <bottom>
-        <HBox spacing="12" alignment="CENTER_LEFT"
-              style="-fx-background-color: #f0f0f0; -fx-border-color: #cccccc; -fx-border-width: 1 0 0 0;">
-            <padding><Insets top="4" right="10" bottom="4" left="10"/></padding>
-
-            <!-- Status text — grows to fill available space -->
-            <Label fx:id="statusLabel" text="Ready."
-                   HBox.hgrow="ALWAYS"
-                   maxWidth="Infinity"
-                   style="-fx-font-size: 12px;"/>
-
-            <!-- Progress bar — hidden when idle -->
-            <ProgressBar fx:id="statusProgressBar"
-                         prefWidth="180" prefHeight="14"
-                         visible="false"/>
-        </HBox>
-    </bottom>
 
 </BorderPane>

@@ -2,241 +2,413 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>IAE User Manual</title>
+    <title>IAE — Manual</title>
     <style>
-      * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
+      /* ===========================================================
+         IAE User Manual — Oxide theme
+         Editorial dark mode that matches the desktop app exactly.
+         Token names mirror theme.css so the visual contract is one
+         system, not two.
+         =========================================================== */
+
+      :root {
+        /* Surfaces */
+        --bg:           #0F0E0C;
+        --bg-elevated:  #15130F;
+        --surface:      #1A1815;
+        --surface-2:    #221F1B;
+        --surface-3:    #2D2924;
+
+        /* Borders */
+        --border:       #2A2620;
+        --border-soft:  #1F1C18;
+        --border-loud:  #3D352B;
+
+        /* Ink */
+        --text:         #EDE6D8;
+        --text-muted:   #9C9388;
+        --text-faint:   #6B6357;
+
+        /* Accent — oxide rust */
+        --accent:        #C2410C;
+        --accent-soft:   #2A1810;
+        --accent-glow:   rgba(194, 65, 12, 0.18);
+
+        /* Semantic */
+        --success:      #65A30D;
+        --warning:      #D4A574;
+        --danger:       #DC2626;
+
+        /* Family stack */
+        --font-display: "Sitka Display", "Sitka", "Bookmania", "Iowan Old Style", "Palatino", serif;
+        --font-sans:    "Aptos", "Aptos Display", "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+        --font-mono:    "Cascadia Code", "JetBrains Mono", Consolas, ui-monospace, monospace;
       }
-      body {
-        font-family:
-          -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
-        font-size: 13px;
-        color: #1a1a1a;
-        background: #ffffff;
+
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+
+      html, body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--font-sans);
+        font-size: 14px;
         line-height: 1.65;
+        font-feature-settings: "ss01", "cv11";
+        -webkit-font-smoothing: antialiased;
       }
+
+      /* Subtle warm vignette so the page has depth, not a flat fill */
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background:
+          radial-gradient(circle at 75% -10%, rgba(194, 65, 12, 0.06), transparent 50%),
+          radial-gradient(circle at 0% 90%, rgba(194, 65, 12, 0.04), transparent 40%);
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      /* ---------- SIDEBAR ---------- */
       #sidebar {
         position: fixed;
         top: 0;
         left: 0;
-        width: 190px;
+        width: 240px;
         height: 100vh;
-        background: #f5f5f5;
-        border-right: 1px solid #ddd;
+        background: var(--bg-elevated);
+        border-right: 1px solid var(--border-soft);
         overflow-y: auto;
-        padding: 20px 0;
+        padding: 36px 0 24px;
+        z-index: 1;
       }
+
+      .brand {
+        padding: 0 28px 32px;
+        border-bottom: 1px solid var(--border-soft);
+        margin-bottom: 22px;
+      }
+      .brand-mark {
+        font-family: var(--font-display);
+        font-size: 24px;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        color: var(--text);
+      }
+      .brand-kicker {
+        font-family: var(--font-display);
+        font-size: 24px;
+        font-style: italic;
+        color: var(--accent);
+      }
+      .brand-sub {
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.16em;
+        color: var(--text-faint);
+        margin-top: 4px;
+        text-transform: uppercase;
+      }
+
       #sidebar h2 {
         font-size: 10px;
         font-weight: 700;
-        color: #888;
-        letter-spacing: 0.08em;
+        color: var(--text-faint);
+        letter-spacing: 0.18em;
         text-transform: uppercase;
-        padding: 0 16px 8px 16px;
+        padding: 0 28px 10px;
       }
       #sidebar a {
         display: block;
-        padding: 6px 16px;
-        font-size: 12px;
-        color: #374151;
+        padding: 7px 28px;
+        font-size: 13px;
+        color: var(--text-muted);
         text-decoration: none;
-        border-left: 3px solid transparent;
+        border-left: 2px solid transparent;
+        transition: color 120ms ease, background 120ms ease, border-color 120ms ease;
       }
       #sidebar a:hover {
-        background: #e8e8e8;
+        background: var(--surface);
+        color: var(--text);
       }
       #sidebar a.active {
-        background: #e8f0fe;
-        color: #1a56db;
-        border-left-color: #1a56db;
-        font-weight: 500;
+        background: linear-gradient(to right, var(--accent-soft), transparent 60%);
+        color: var(--accent);
+        border-left-color: var(--accent);
+        font-weight: 600;
       }
-      #sidebar .nav-group {
-        margin-bottom: 18px;
-      }
+      #sidebar .nav-group { margin-bottom: 22px; }
+
+      /* ---------- CONTENT ---------- */
       #content {
-        margin-left: 190px;
-        padding: 32px 40px 60px 40px;
-        max-width: 820px;
+        position: relative;
+        z-index: 1;
+        margin-left: 240px;
+        padding: 64px 64px 96px;
+        max-width: 860px;
       }
-      section {
-        margin-bottom: 52px;
-      }
+
+      section { margin-bottom: 72px; }
+
       h1 {
-        font-size: 22px;
-        font-weight: 600;
-        color: #111;
-        margin-bottom: 6px;
-      }
-      .subtitle {
-        font-size: 13px;
-        color: #6b7280;
-        margin-bottom: 32px;
-        padding-bottom: 16px;
-        border-bottom: 1px solid #e5e7eb;
-      }
-      h2 {
-        font-size: 16px;
-        font-weight: 600;
-        color: #111;
-        margin-bottom: 12px;
-        padding-bottom: 6px;
-        border-bottom: 1px solid #e5e7eb;
-      }
-      p {
+        font-family: var(--font-display);
+        font-size: 44px;
+        font-weight: 500;
+        line-height: 1.05;
+        letter-spacing: -0.018em;
+        color: var(--text);
         margin-bottom: 10px;
-        color: #374151;
       }
+
+      .subtitle {
+        font-family: var(--font-sans);
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--text-faint);
+        margin-bottom: 36px;
+        padding-bottom: 24px;
+        border-bottom: 1px solid var(--border-soft);
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+      }
+
+      h2 {
+        font-family: var(--font-display);
+        font-size: 26px;
+        font-weight: 500;
+        letter-spacing: -0.012em;
+        color: var(--text);
+        margin-bottom: 16px;
+      }
+      h2::before {
+        content: "";
+        display: inline-block;
+        width: 6px;
+        height: 6px;
+        background: var(--accent);
+        border-radius: 50%;
+        margin-right: 12px;
+        vertical-align: middle;
+        transform: translateY(-3px);
+      }
+
+      p {
+        margin-bottom: 14px;
+        color: var(--text-muted);
+        max-width: 64ch;
+      }
+
+      /* Editorial drop-cap on the first overview paragraph */
+      #overview > p:first-of-type::first-letter {
+        font-family: var(--font-display);
+        font-size: 56px;
+        font-weight: 500;
+        line-height: 0.85;
+        float: left;
+        margin: 6px 12px 0 0;
+        color: var(--accent);
+      }
+
+      a { color: var(--accent); text-decoration: none; border-bottom: 1px solid var(--accent-soft); }
+      a:hover { border-bottom-color: var(--accent); }
+
+      em { color: var(--text); font-style: normal; font-weight: 600; }
+
+      code {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        padding: 1px 6px;
+        font-size: 12px;
+        font-family: var(--font-mono);
+        color: var(--text);
+      }
+
+      kbd {
+        background: var(--surface-2);
+        border: 1px solid var(--border-loud);
+        border-bottom-width: 2px;
+        border-radius: 5px;
+        padding: 2px 8px;
+        font-family: var(--font-mono);
+        font-size: 11.5px;
+        color: var(--text);
+        box-shadow: 0 1px 0 rgba(0,0,0,0.4);
+      }
+
+      /* ---------- STEPS ---------- */
       .steps {
         list-style: none;
-        margin-bottom: 12px;
+        margin: 24px 0;
+        position: relative;
+      }
+      .steps::before {
+        content: "";
+        position: absolute;
+        left: 14px;
+        top: 8px;
+        bottom: 8px;
+        width: 1px;
+        background: var(--border);
       }
       .steps li {
         display: flex;
-        gap: 12px;
+        gap: 18px;
         align-items: flex-start;
-        margin-bottom: 14px;
+        margin-bottom: 22px;
+        position: relative;
       }
       .step-num {
-        min-width: 22px;
-        height: 22px;
-        background: #e8f0fe;
-        color: #1a56db;
-        font-size: 11px;
-        font-weight: 700;
+        font-family: var(--font-display);
+        font-size: 18px;
+        font-weight: 600;
+        font-style: italic;
+        color: var(--accent);
+        background: var(--bg);
+        border: 1px solid var(--border-loud);
+        min-width: 30px;
+        height: 30px;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
         flex-shrink: 0;
-        margin-top: 1px;
+        position: relative;
+        z-index: 1;
       }
       .step-body strong {
         display: block;
-        font-size: 13px;
-        color: #111;
-        margin-bottom: 2px;
+        font-family: var(--font-sans);
+        font-weight: 700;
+        font-size: 14px;
+        color: var(--text);
+        margin-bottom: 4px;
       }
       .step-body span {
-        font-size: 12px;
-        color: #6b7280;
+        font-size: 13px;
+        color: var(--text-muted);
+        line-height: 1.6;
       }
-      .status-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-bottom: 8px;
-      }
-      .status-table td {
-        padding: 8px 10px;
-        border-bottom: 1px solid #f0f0f0;
-        font-size: 12px;
-        vertical-align: top;
-      }
-      .status-table tr:last-child td {
-        border-bottom: none;
-      }
-      .badge {
-        display: inline-block;
-        font-size: 10px;
-        font-weight: 700;
-        padding: 2px 8px;
-        border-radius: 4px;
-        white-space: nowrap;
-      }
-      .badge-success {
-        background: #dcfce7;
-        color: #15803d;
-      }
-      .badge-error {
-        background: #fee2e2;
-        color: #b91c1c;
-      }
-      .badge-warn {
-        background: #fef3c7;
-        color: #92400e;
-      }
-      .badge-gray {
-        background: #e5e7eb;
-        color: #4b5563;
-      }
+
+      /* ---------- TABLES ---------- */
+      .status-table,
       .shortcut-table {
         width: 100%;
         border-collapse: collapse;
+        margin-bottom: 12px;
+        border-top: 1px solid var(--border-soft);
+        border-bottom: 1px solid var(--border-soft);
       }
-      .shortcut-table tr {
-        border-bottom: 1px solid #f0f0f0;
-      }
-      .shortcut-table tr:last-child {
-        border-bottom: none;
-      }
+      .status-table td,
       .shortcut-table td {
-        padding: 7px 10px;
-        font-size: 12px;
-        color: #374151;
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--border-soft);
+        font-size: 13px;
+        color: var(--text-muted);
+        vertical-align: top;
       }
-      .shortcut-table td:last-child {
-        text-align: right;
+      .status-table tr:last-child td,
+      .shortcut-table tr:last-child td { border-bottom: none; }
+      .shortcut-table td:first-child { color: var(--text); }
+      .shortcut-table td:last-child { text-align: right; }
+
+      /* ---------- BADGES ---------- */
+      .badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 10.5px;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        padding: 3px 9px;
+        border-radius: 999px;
+        white-space: nowrap;
+        text-transform: uppercase;
+        border: 1px solid;
       }
-      kbd {
-        background: #f3f4f6;
-        border: 1px solid #d1d5db;
-        border-radius: 4px;
-        padding: 1px 7px;
-        font-size: 11px;
-        font-family: monospace;
-        color: #1a56db;
-      }
+      .badge-success { color: var(--success); border-color: rgba(101, 163, 13, 0.4); background: rgba(101, 163, 13, 0.08); }
+      .badge-error   { color: var(--danger);  border-color: rgba(220, 38, 38, 0.4);  background: rgba(220, 38, 38, 0.08); }
+      .badge-warn    { color: var(--warning); border-color: rgba(212, 165, 116, 0.4); background: rgba(212, 165, 116, 0.08); }
+      .badge-gray    { color: var(--text-muted); border-color: var(--border-loud); background: var(--surface); }
+
+      /* ---------- CONFIG GRID ---------- */
       .config-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 10px;
-        margin-bottom: 10px;
+        gap: 12px;
+        margin: 18px 0 14px;
       }
       .config-box {
-        background: #f9fafb;
-        border: 1px solid #e5e7eb;
-        border-radius: 6px;
-        padding: 10px 14px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 14px 18px;
       }
       .config-box strong {
         display: block;
-        font-size: 12px;
-        color: #111;
-        margin-bottom: 2px;
+        font-family: var(--font-sans);
+        font-weight: 700;
+        font-size: 10.5px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--text-faint);
+        margin-bottom: 6px;
       }
       .config-box span {
-        font-size: 11px;
-        color: #6b7280;
-        font-family: monospace;
+        font-size: 13px;
+        color: var(--text);
+        font-family: var(--font-mono);
       }
+
+      /* ---------- NOTE PULL-QUOTE ---------- */
       .note {
-        background: #fffbeb;
-        border-left: 3px solid #f59e0b;
-        padding: 10px 14px;
-        border-radius: 0 6px 6px 0;
-        font-size: 12px;
-        color: #374151;
-        margin-bottom: 10px;
+        position: relative;
+        background: linear-gradient(135deg, var(--accent-soft), transparent 70%);
+        border-left: 3px solid var(--accent);
+        padding: 16px 20px 16px 24px;
+        border-radius: 0 8px 8px 0;
+        font-size: 13.5px;
+        color: var(--text);
+        margin: 18px 0;
+        font-family: var(--font-display);
+        font-style: italic;
+        line-height: 1.55;
       }
-      code {
-        background: #f3f4f6;
-        border-radius: 3px;
-        padding: 1px 5px;
-        font-size: 11px;
-        font-family: monospace;
-        color: #374151;
+      .note::before {
+        content: "—";
+        color: var(--accent);
+        font-style: normal;
+        margin-right: 6px;
       }
+
+      /* ---------- SCROLLBAR ---------- */
+      ::-webkit-scrollbar { width: 10px; height: 10px; }
+      ::-webkit-scrollbar-track { background: transparent; }
+      ::-webkit-scrollbar-thumb { background: var(--surface-3); border-radius: 6px; border: 2px solid var(--bg-elevated); }
+      ::-webkit-scrollbar-thumb:hover { background: var(--border-loud); }
+
+      /* ---------- ENTRY ANIMATION ---------- */
+      @keyframes slideUp {
+        from { opacity: 0; transform: translateY(8px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
+      section { animation: slideUp 420ms ease both; }
+      section:nth-of-type(1) { animation-delay: 0ms; }
+      section:nth-of-type(2) { animation-delay: 60ms; }
+      section:nth-of-type(3) { animation-delay: 120ms; }
+      section:nth-of-type(4) { animation-delay: 180ms; }
+      section:nth-of-type(5) { animation-delay: 240ms; }
+      section:nth-of-type(n+6) { animation-delay: 300ms; }
     </style>
   </head>
   <body>
     <nav id="sidebar">
+      <div class="brand">
+        <span class="brand-mark">IAE</span><span class="brand-kicker">·grader</span>
+        <div class="brand-sub">User Manual</div>
+      </div>
       <div class="nav-group">
-        <h2>User Manual</h2>
-        <a href="#overview" class="active" onclick="setActive(this)"
-          >Overview</a
-        >
+        <h2>Start</h2>
+        <a href="#overview" class="active" onclick="setActive(this)">Overview</a>
         <a href="#quickstart" onclick="setActive(this)">Quick start</a>
       </div>
       <div class="nav-group">
@@ -256,12 +428,10 @@
 
     <div id="content">
       <section id="overview">
-        <h1>IAE — Integrated Assignment Environment</h1>
-        <p class="subtitle">
-          Automated grading tool for student code submissions
-        </p>
+        <h1>Integrated Assignment Environment</h1>
+        <p class="subtitle">Automated grading for student code submissions</p>
         <p>
-          IAE automates the compile → run → compare pipeline for student
+          IAE automates the compile · run · compare pipeline for student
           programming assignments. It extracts student ZIP archives, compiles or
           interprets each submission using a configurable language setup, runs
           it against your test cases, and produces a colour-coded report.
@@ -276,59 +446,38 @@
         <h2>Quick start</h2>
         <ul class="steps">
           <li>
-            <div class="step-num">1</div>
+            <div class="step-num">i</div>
             <div class="step-body">
               <strong>Create a configuration</strong>
-              <span
-                >Go to <em>Configuration → Manage Configurations</em>. Set the
-                compiler/interpreter path, source filename (e.g.
-                <code>main.c</code>), and compile arguments. Built-in defaults
-                for C, C++, Python 3, and Java are seeded on first launch.</span
-              >
+              <span>Go to <em>Configuration → Manage Configurations</em>. Set the compiler/interpreter path, source filename (e.g. <code>main.c</code>), and compile arguments. Built-in defaults for C, C++, Python 3, and Java are seeded on first launch.</span>
             </div>
           </li>
           <li>
-            <div class="step-num">2</div>
+            <div class="step-num">ii</div>
             <div class="step-body">
               <strong>Create a project</strong>
-              <span
-                >Click <em>⊕ New</em>. Enter a project name, choose a
-                configuration, and browse to the folder containing student
-                <code>.zip</code> files.</span
-              >
+              <span>Click <em>+ New</em> in the sidebar. Enter a project name, choose a configuration, and browse to the folder containing student <code>.zip</code> files.</span>
             </div>
           </li>
           <li>
-            <div class="step-num">3</div>
+            <div class="step-num">iii</div>
             <div class="step-body">
               <strong>Add test cases</strong>
-              <span
-                >Each test case defines the command-line arguments to pass and
-                the expected stdout. At least one test case is required before
-                running.</span
-              >
+              <span>Each test case defines the command-line arguments to pass and the expected stdout. At least one test case is required before running.</span>
             </div>
           </li>
           <li>
-            <div class="step-num">4</div>
+            <div class="step-num">iv</div>
             <div class="step-body">
               <strong>Run</strong>
-              <span
-                >Select the project and click <em>▶ Run</em>. IAE extracts,
-                compiles, and runs every submission. Results stream in live as
-                each student is processed.</span
-              >
+              <span>Select the project and click the floating <em>Run grading</em> pill. IAE extracts, compiles, and runs every submission. Results stream in live as each student is processed.</span>
             </div>
           </li>
           <li>
-            <div class="step-num">5</div>
+            <div class="step-num">v</div>
             <div class="step-body">
               <strong>Review &amp; export</strong>
-              <span
-                >Click any row in the results table to inspect the diff. Use
-                <em>File → Export CSV</em> or <em>Export HTML</em> to save the
-                report.</span
-              >
+              <span>Click any row in the results table to inspect the diff. Use <em>File → Export CSV</em> or <em>Export HTML</em> to save the report.</span>
             </div>
           </li>
         </ul>
@@ -342,26 +491,14 @@
           create, edit, delete, import, or export configurations.
         </p>
         <div class="config-grid">
-          <div class="config-box">
-            <strong>Compiler / interpreter path</strong
-            ><span>e.g. gcc, g++, python3, java</span>
-          </div>
-          <div class="config-box">
-            <strong>Compile arguments</strong
-            ><span>Use {SOURCE_FILE} and {OUTPUT_PATH} as placeholders</span>
-          </div>
-          <div class="config-box">
-            <strong>File to compile</strong
-            ><span>e.g. main.c, Main.java, main.py</span>
-          </div>
-          <div class="config-box">
-            <strong>Relative executable path</strong
-            ><span>Output binary name, e.g. output or output.exe</span>
-          </div>
+          <div class="config-box"><strong>Compiler / interpreter</strong><span>gcc · g++ · python3 · java</span></div>
+          <div class="config-box"><strong>Compile arguments</strong><span>{SOURCE_FILE} -o {OUTPUT_PATH}</span></div>
+          <div class="config-box"><strong>File to compile</strong><span>main.c · Main.java · main.py</span></div>
+          <div class="config-box"><strong>Executable path</strong><span>a.out · main · output.exe</span></div>
         </div>
         <p>
           Enable <em>Interpreted</em> for languages that do not need a separate
-          compile step (Python, Java single-file). Configurations can be
+          compile step (Python, single-file Java). Configurations can be
           exported to <code>.iaeconfig</code> files and shared with colleagues.
         </p>
       </section>
@@ -374,8 +511,8 @@
           details and latest report.
         </p>
         <p>
-          Use <em>✎ Edit</em> to update the project name, configuration,
-          submissions directory, or test cases. Use <em>✕ Delete</em> to
+          Use <em>Edit</em> to update the project name, configuration,
+          submissions directory, or test cases. Use <em>Delete</em> to
           permanently remove the project and all its reports.
         </p>
       </section>
@@ -383,209 +520,103 @@
       <section id="running">
         <h2>Running the grading pipeline</h2>
         <p>
-          Click <em>▶ Run</em> (or press <kbd>Ctrl R</kbd>) to start. The
-          pipeline runs on a background thread so the UI stays responsive.
+          Click the floating <em>Run grading</em> pill (or press <kbd>Ctrl R</kbd>)
+          to start. The pipeline runs on a background thread so the UI stays
+          responsive.
         </p>
         <ul class="steps">
           <li>
-            <div class="step-num">1</div>
+            <div class="step-num">i</div>
             <div class="step-body">
-              <strong>Extract</strong
-              ><span
-                >All <code>.zip</code> files in the submissions directory are
-                extracted to a temporary folder.</span
-              >
+              <strong>Extract</strong>
+              <span>All <code>.zip</code> files in the submissions directory are extracted to a temporary folder.</span>
             </div>
           </li>
           <li>
-            <div class="step-num">2</div>
+            <div class="step-num">ii</div>
             <div class="step-body">
-              <strong>Compile</strong
-              ><span
-                >For compiled languages, the source file is compiled. A non-zero
-                exit code marks the submission COMPILE_ERROR.</span
-              >
+              <strong>Compile</strong>
+              <span>For compiled languages, the source file is compiled. A non-zero exit code marks the submission COMPILE_ERROR.</span>
             </div>
           </li>
           <li>
-            <div class="step-num">3</div>
+            <div class="step-num">iii</div>
             <div class="step-body">
-              <strong>Run &amp; compare</strong
-              ><span
-                >The program is executed for each test case. Output is compared
-                with the expected value. A 10-second timeout is enforced per
-                test case.</span
-              >
+              <strong>Run &amp; compare</strong>
+              <span>The program is executed for each test case. Output is compared with the expected value. A 10-second timeout is enforced per test case.</span>
             </div>
           </li>
           <li>
-            <div class="step-num">4</div>
+            <div class="step-num">iv</div>
             <div class="step-body">
-              <strong>Report</strong
-              ><span
-                >Results are saved to the database and displayed live in the
-                results table.</span
-              >
+              <strong>Report</strong>
+              <span>Results are saved to the database and displayed live in the results table.</span>
             </div>
           </li>
         </ul>
         <div class="note">
-          A submission is marked SUCCESS only if every test case passes. The
-          first failing test case stops further execution for that student.
+          A submission is marked SUCCESS only if every test case passes. The first failing case stops further execution for that student.
         </div>
       </section>
 
       <section id="results">
         <h2>Results &amp; statuses</h2>
-        <p>
-          Click any row in the results table to see the diff between actual and
-          expected output.
-        </p>
+        <p>Click any row in the results table to see the diff between actual and expected output.</p>
         <table class="status-table">
-          <tr>
-            <td><span class="badge badge-success">SUCCESS</span></td>
-            <td>All test cases passed.</td>
-          </tr>
-          <tr>
-            <td><span class="badge badge-error">COMPILE_ERROR</span></td>
-            <td>
-              The compiler exited with a non-zero code. Check the Error Message
-              column for details.
-            </td>
-          </tr>
-          <tr>
-            <td><span class="badge badge-error">RUNTIME_ERROR</span></td>
-            <td>The program crashed or exceeded the 10-second timeout.</td>
-          </tr>
-          <tr>
-            <td><span class="badge badge-warn">WRONG_OUTPUT</span></td>
-            <td>
-              The program ran but its output did not match the expected output.
-              Click the row to see the diff.
-            </td>
-          </tr>
-          <tr>
-            <td><span class="badge badge-gray">SKIPPED</span></td>
-            <td>
-              The ZIP filename did not contain a valid 9-digit student ID, or
-              extraction failed. Manual review required.
-            </td>
-          </tr>
+          <tr><td><span class="badge badge-success">Passed</span></td><td>All test cases passed.</td></tr>
+          <tr><td><span class="badge badge-error">Compile error</span></td><td>The compiler exited with a non-zero code. Check the Error / Info column for details.</td></tr>
+          <tr><td><span class="badge badge-error">Runtime error</span></td><td>The program crashed or exceeded the 10-second timeout.</td></tr>
+          <tr><td><span class="badge badge-warn">Wrong output</span></td><td>The program ran but its output did not match the expected output. Click the row to see the diff.</td></tr>
+          <tr><td><span class="badge badge-gray">Skipped</span></td><td>The ZIP filename did not contain a valid 11-digit student ID, or extraction failed. Manual review required.</td></tr>
         </table>
       </section>
 
       <section id="export">
         <h2>Exporting reports</h2>
-        <p>
-          After a run, use <em>File → Export CSV</em> or
-          <em>File → Export HTML</em> to save the results.
-        </p>
-        <p>
-          The CSV contains one row per student: <code>studentId</code>,
-          <code>status</code>, <code>actualOutput</code>,
-          <code>errorMessage</code>, <code>diffText</code>.
-        </p>
-        <p>
-          The HTML file is self-contained with colour-coded status cells and can
-          be opened in any browser.
-        </p>
+        <p>After a run, use <em>File → Export CSV</em> or <em>File → Export HTML</em> to save the results.</p>
+        <p>The CSV contains one row per student: <code>studentId</code>, <code>status</code>, <code>actualOutput</code>, <code>errorMessage</code>, <code>diffText</code>.</p>
+        <p>The HTML file is self-contained with colour-coded status cells and can be opened in any browser.</p>
       </section>
 
       <section id="naming">
         <h2>ZIP naming convention</h2>
-        <p>
-          Each student ZIP must contain exactly one 9-digit sequence in its
-          filename, which is used as the student ID.
-        </p>
+        <p>Each student ZIP must contain exactly one 11-digit sequence in its filename, which is used as the student ID.</p>
         <table class="status-table">
-          <tr>
-            <td><code>220201085.zip</code></td>
-            <td>
-              <span class="badge badge-success">OK</span> — student ID:
-              220201085
-            </td>
-          </tr>
-          <tr>
-            <td><code>John_220201085_hw1.zip</code></td>
-            <td>
-              <span class="badge badge-success">OK</span> — student ID:
-              220201085
-            </td>
-          </tr>
-          <tr>
-            <td><code>homework.zip</code></td>
-            <td>
-              <span class="badge badge-gray">SKIPPED</span> — no 9-digit ID
-              found
-            </td>
-          </tr>
-          <tr>
-            <td><code>220201085_220201086.zip</code></td>
-            <td>
-              <span class="badge badge-gray">SKIPPED</span> — two IDs found,
-              ambiguous
-            </td>
-          </tr>
+          <tr><td><code>20230602024.zip</code></td><td><span class="badge badge-success">OK</span> — student ID: 20230602024</td></tr>
+          <tr><td><code>John_20230602024_hw1.zip</code></td><td><span class="badge badge-success">OK</span> — student ID: 20230602024</td></tr>
+          <tr><td><code>homework.zip</code></td><td><span class="badge badge-gray">Skipped</span> — no 11-digit ID found</td></tr>
+          <tr><td><code>20230602024_20230602025.zip</code></td><td><span class="badge badge-gray">Skipped</span> — two IDs found, ambiguous</td></tr>
         </table>
       </section>
 
       <section id="shortcuts">
         <h2>Keyboard shortcuts</h2>
         <table class="shortcut-table">
-          <tr>
-            <td>New project</td>
-            <td><kbd>Ctrl N</kbd></td>
-          </tr>
-          <tr>
-            <td>Save project</td>
-            <td><kbd>Ctrl S</kbd></td>
-          </tr>
-          <tr>
-            <td>Run grading pipeline</td>
-            <td><kbd>Ctrl R</kbd></td>
-          </tr>
-          <tr>
-            <td>Edit selected project</td>
-            <td><kbd>Ctrl E</kbd></td>
-          </tr>
-          <tr>
-            <td>Manage configurations</td>
-            <td><kbd>Ctrl M</kbd></td>
-          </tr>
-          <tr>
-            <td>Export CSV</td>
-            <td><kbd>Ctrl Shift C</kbd></td>
-          </tr>
-          <tr>
-            <td>Export HTML</td>
-            <td><kbd>Ctrl Shift H</kbd></td>
-          </tr>
-          <tr>
-            <td>Open help window</td>
-            <td><kbd>F1</kbd></td>
-          </tr>
+          <tr><td>New project</td><td><kbd>Ctrl N</kbd></td></tr>
+          <tr><td>Save project</td><td><kbd>Ctrl S</kbd></td></tr>
+          <tr><td>Run grading pipeline</td><td><kbd>Ctrl R</kbd></td></tr>
+          <tr><td>Edit selected project</td><td><kbd>Ctrl E</kbd></td></tr>
+          <tr><td>Manage configurations</td><td><kbd>Ctrl M</kbd></td></tr>
+          <tr><td>Export CSV</td><td><kbd>Ctrl Shift C</kbd></td></tr>
+          <tr><td>Export HTML</td><td><kbd>Ctrl Shift H</kbd></td></tr>
+          <tr><td>Open help window</td><td><kbd>F1</kbd></td></tr>
         </table>
       </section>
     </div>
 
     <script>
       function setActive(el) {
-        document
-          .querySelectorAll("#sidebar a")
-          .forEach((a) => a.classList.remove("active"));
+        document.querySelectorAll("#sidebar a").forEach((a) => a.classList.remove("active"));
         el.classList.add("active");
       }
       window.addEventListener("scroll", function () {
         const sections = document.querySelectorAll("section");
         let current = "";
         sections.forEach((s) => {
-          if (window.scrollY >= s.offsetTop - 60) current = s.id;
+          if (window.scrollY >= s.offsetTop - 80) current = s.id;
         });
         document.querySelectorAll("#sidebar a").forEach((a) => {
-          a.classList.toggle(
-            "active",
-            a.getAttribute("href") === "#" + current,
-          );
+          a.classList.toggle("active", a.getAttribute("href") === "#" + current);
         });
       });
     </script>

@@ -68,7 +68,8 @@ public class ProjectDialogController {
     @FXML
     public void initialize() {
         errorLabel.setVisible(false);
-        testCaseListView.setPlaceholder(new Label("No test cases yet."));
+        errorLabel.setManaged(false);
+        // FXML placeholder is already styled; no override needed.
 
         // Render each TestCase as "<args>  →  <expected>"; raw object kept in the model
         testCaseListView.setItems(FXCollections.observableArrayList());
@@ -248,10 +249,12 @@ public class ProjectDialogController {
     private void showError(String msg) {
         errorLabel.setText(msg);
         errorLabel.setVisible(true);
+        errorLabel.setManaged(true);
     }
 
     private void hideError() {
         errorLabel.setVisible(false);
+        errorLabel.setManaged(false);
     }
 
     public Project getCommittedProject() {

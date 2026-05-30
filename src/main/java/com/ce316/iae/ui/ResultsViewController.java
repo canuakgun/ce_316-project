@@ -6,7 +6,6 @@ import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.paint.Color;
 
 /**
  * Controller for the center/right results pane (ResultsView.fxml).
@@ -48,22 +47,24 @@ public class ResultsViewController implements ResultsObserver {
         statusColumn   .setCellValueFactory(new PropertyValueFactory<>("status"));
         errorColumn    .setCellValueFactory(new PropertyValueFactory<>("errorMessage"));
 
-        // Colour-code the Status column — item is now SubmissionStatus enum
+        // Status column — uses token-driven styleClasses (.status-pass / -fail / -error /
+        // -pending) so colors come from theme.css, not hard-coded Color constants.
         statusColumn.setCellFactory(col -> new TableCell<>() {
             @Override
             protected void updateItem(SubmissionStatus item, boolean empty) {
                 super.updateItem(item, empty);
+                getStyleClass().removeAll("status-pass", "status-fail",
+                        "status-error", "status-pending");
                 if (empty || item == null) {
                     setText(null);
-                    setStyle("");
                 } else {
-                    setText(item.name());
+                    setText(prettyStatus(item));
                     switch (item) {
-                        case SUCCESS       -> setTextFill(Color.GREEN);
-                        case WRONG_OUTPUT  -> setTextFill(Color.ORANGE);
+                        case SUCCESS       -> getStyleClass().add("status-pass");
+                        case WRONG_OUTPUT  -> getStyleClass().add("status-fail");
                         case COMPILE_ERROR,
-                             RUNTIME_ERROR -> setTextFill(Color.RED);
-                        default            -> setTextFill(Color.GRAY);
+                             RUNTIME_ERROR -> getStyleClass().add("status-error");
+                        default            -> getStyleClass().add("status-pending");
                     }
                 }
             }
@@ -112,8 +113,19 @@ public class ResultsViewController implements ResultsObserver {
     public void clearResults() {
         resultsTable.getItems().clear();
         diffTextArea.clear();
-        diffTextArea.setPromptText("Click a row to see the diff.");
-        summaryLabel.setText("No results yet.");
+        diffTextArea.setPromptText("Select a row above to inspect expected vs. actual output.");
+        summaryLabel.setText("No run yet");
+    }
+
+    /** Pretty enum names for the table: SUCCESS → "Passed", etc. */
+    private String prettyStatus(SubmissionStatus s) {
+        return switch (s) {
+            case SUCCESS       -> "Passed";
+            case WRONG_OUTPUT  -> "Wrong output";
+            case COMPILE_ERROR -> "Compile error";
+            case RUNTIME_ERROR -> "Runtime error";
+            case SKIPPED       -> "Skipped";
+        };
     }
 
     // ---------------------------------------------------------------

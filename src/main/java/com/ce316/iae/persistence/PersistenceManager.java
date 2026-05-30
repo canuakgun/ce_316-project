@@ -457,39 +457,79 @@ public class PersistenceManager {
         }
         return Optional.empty();
     }
+    /**
+     * Loads one report by id including all its student_results, and computes
+     * total / success / fail counts from those results.
+     *
+     * NB: column names match the `reports` schema above — `project_id` and
+     * `timestamp`. Counts are computed in-memory via {@link Report#computeCounts()}
+     * because they are not stored as columns.
+     */
     public Optional<Report> loadReportById(int reportId) throws SQLException {
-        String sql = "SELECT id, projectId, runAt, totalCount, successCount, failCount " +
-                "FROM reports WHERE id = ?";
+        String sql = "SELECT id, project_id, timestamp FROM reports WHERE id = ?";
         try (Connection conn = openConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, reportId);
-            ResultSet rs = ps.executeQuery();
-            if (!rs.next()) return Optional.empty();
-            Report report = new Report();
-            report.setId(rs.getInt("id"));
-            report.setProjectId(rs.getInt("projectId"));
-            report.setTimestamp(Instant.parse(rs.getString("runAt")));
-            loadStudentResultsInto(conn, report);
-            return Optional.of(report);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next()) return Optional.empty();
+                Report report = new Report();
+                report.setId(rs.getInt("id"));
+                report.setProjectId(rs.getInt("project_id"));
+                String ts = rs.getString("timestamp");
+                if (ts != null) report.setTimestamp(Instant.parse(ts));
+                loadStudentResultsInto(conn, report);
+                report.computeCounts();
+                return Optional.of(report);
+            }
         }
     }
 
+    /**
+     * Lists every report for a project, newest first. Each report is
+     * lightweight (no student_results loaded) but its total/success counts are
+     * populated via a per-row aggregate query against student_results — this
+     * is what the run-history dropdown displays without paying the cost of
+     * full result loading per row.
+     */
     public List<Report> loadAllReports(int projectId) throws SQLException {
         List<Report> reports = new ArrayList<>();
-        String sql = "SELECT id, runAt, totalCount, successCount, failCount " +
-                "FROM reports WHERE projectId = ? ORDER BY runAt DESC";
+        String listSql =
+                "SELECT id, project_id, timestamp FROM reports " +
+                "WHERE project_id = ? ORDER BY id DESC";
+        String countSql =
+                "SELECT COUNT(*) AS total, " +
+                "SUM(CASE WHEN status = 'SUCCESS' THEN 1 ELSE 0 END) AS pass " +
+                "FROM student_results WHERE report_id = ?";
+
         try (Connection conn = openConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, projectId);
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                Report r = new Report();
-                r.setId(rs.getInt("id"));
-                r.setProjectId(projectId);
-                r.setTimestamp(Instant.parse(rs.getString("runAt")));
-                r.setTotalCount(rs.getInt("totalCount"));
-                r.setSuccessCount(rs.getInt("successCount"));
-                reports.add(r);
+             PreparedStatement listPs = conn.prepareStatement(listSql)) {
+
+            listPs.setInt(1, projectId);
+            try (ResultSet rs = listPs.executeQuery()) {
+                while (rs.next()) {
+                    Report r = new Report();
+                    r.setId(rs.getInt("id"));
+                    r.setProjectId(rs.getInt("project_id"));
+                    String ts = rs.getString("timestamp");
+                    if (ts != null) r.setTimestamp(Instant.parse(ts));
+                    reports.add(r);
+                }
+            }
+
+            // Counts: separate aggregate query per report. The student_results
+            // table doesn't store totals, so we aggregate on demand.
+            try (PreparedStatement countPs = conn.prepareStatement(countSql)) {
+                for (Report r : reports) {
+                    countPs.setInt(1, r.getId());
+                    try (ResultSet rs = countPs.executeQuery()) {
+                        if (rs.next()) {
+                            int total = rs.getInt("total");
+                            int pass  = rs.getInt("pass");
+                            r.setTotalCount(total);
+                            r.setSuccessCount(pass);
+                        }
+                    }
+                }
             }
         }
         return reports;

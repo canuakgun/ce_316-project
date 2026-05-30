@@ -23,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * Verifies the critical bug fixes from the May 2026 fix pass:
  *  1. ProjectDialog flow persists configuration + test cases (not just an empty shell)
- *  2. ZipProcessor uses 9-digit student ID pattern
+ *  2. ZipProcessor uses the centralized STUDENT_ID_PATTERN
  *  3. seedDefaultsIfEmpty installs the four built-in configurations
  */
 class BugfixSmokeTest {
@@ -70,10 +70,10 @@ class BugfixSmokeTest {
     }
 
     @Test
-    void zipProcessor_skips_nonNineDigitFilenames() throws Exception {
+    void zipProcessor_skips_nonStudentIdFilenames() throws Exception {
         Path tmp = Files.createTempDirectory("iae_zip_test_");
-        // Valid 9-digit ID
-        File valid = createDummyZip(tmp.resolve("220201085.zip").toFile());
+        // Valid 11-digit ID (matches ZipProcessor.STUDENT_ID_LENGTH)
+        File valid = createDummyZip(tmp.resolve("20230602024.zip").toFile());
         // Non-matching name (like the walkthrough's "homework1.zip" example)
         File invalid = createDummyZip(tmp.resolve("homework1.zip").toFile());
 
@@ -81,12 +81,11 @@ class BugfixSmokeTest {
         StudentSubmission validSub = zp.extractOne(valid);
         StudentSubmission invalidSub = zp.extractOne(invalid);
 
-        assertEquals("220201085", validSub.getStudentId());
+        assertEquals("20230602024", validSub.getStudentId());
         // Per the fixed deriveStudentId, invalid → returns the full filename;
-        // ExecutionEngine.runAll then matches "\d{9}" and marks it SKIPPED.
-        assertNotEquals("homework1", "1", "the non-fixed regex used to extract '1' from homework1");
-        assertFalse(invalidSub.getStudentId().matches("\\d{9}"),
-                "invalid filename must NOT be derived to a 9-digit id");
+        // ExecutionEngine.runAll then validates against STUDENT_ID_PATTERN and SKIPs.
+        assertFalse(ZipProcessor.STUDENT_ID_PATTERN.matcher(invalidSub.getStudentId()).matches(),
+                "invalid filename must NOT be derived to a valid student-ID");
     }
 
     private static File createDummyZip(File target) throws Exception {

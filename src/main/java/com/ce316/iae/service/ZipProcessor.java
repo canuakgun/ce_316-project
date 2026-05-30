@@ -21,7 +21,7 @@ import java.util.regex.Pattern;
  * Student ID derivation follows the SDD §2.2 algorithm:
  * <ol>
  * <li>Strip the {@code .zip} extension from the filename.</li>
- * <li>Apply the regex {@code \d{9}}.</li>
+ * <li>Apply the regex {@link #STUDENT_ID_PATTERN}.</li>
  * <li>Exactly one match → use it as the student ID.</li>
  * <li>No match (or more than one match) → student ID =
  * filename-without-extension;
@@ -30,8 +30,16 @@ import java.util.regex.Pattern;
  */
 public class ZipProcessor {
 
-    /** Exactly 9 consecutive digits — matches a Turkish student ID (e.g. 220201085). */
-    private static final Pattern STUDENT_ID_PATTERN = Pattern.compile("\\d{9}");
+    /**
+     * Number of consecutive digits that constitute a valid student ID.
+     * Single source of truth — referenced by both ZipProcessor (for extraction)
+     * and ExecutionEngine (for the defensive post-check). Change here only.
+     */
+    public static final int STUDENT_ID_LENGTH = 11;
+
+    /** Exactly {@value #STUDENT_ID_LENGTH} consecutive digits — e.g. {@code 20230602024}. */
+    public static final Pattern STUDENT_ID_PATTERN =
+            Pattern.compile("\\d{" + STUDENT_ID_LENGTH + "}");
 
     /** Root temp directory where all extracted submissions land. */
     private static final File EXTRACT_ROOT = new File(System.getProperty("java.io.tmpdir"), "IAE_extractions");
@@ -115,8 +123,8 @@ public class ZipProcessor {
      * Derives a student ID from a filename (without extension).
      *
      * <ul>
-     * <li>If the name contains exactly one 9-digit sequence, that sequence is
-     * returned.</li>
+     * <li>If the name contains exactly one {@value #STUDENT_ID_LENGTH}-digit
+     * sequence, that sequence is returned.</li>
      * <li>Otherwise the full name-without-extension is returned (submission will be
      * SKIPPED
      * by the caller because it does not match a known student ID pattern).</li>
@@ -138,7 +146,7 @@ public class ZipProcessor {
         if (matches.size() == 1) {
             return matches.get(0);
         }
-        // Zero or multiple 9-digit sequences → fall back to raw name; caller sets
+        // Zero or multiple ID-length sequences → fall back to raw name; caller sets
         // SKIPPED
         return filenameWithoutExt;
     }

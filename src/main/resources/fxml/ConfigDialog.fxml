@@ -5,134 +5,124 @@
 <?import javafx.scene.layout.*?>
 
 <!--
-    ConfigDialog.fxml — CRUD + import/export for Configuration objects.
-    Controller: com.ce316.iae.ui.ConfigDialogController
+    ConfigDialog.fxml — CRUD + import/export for language configurations.
 -->
-<HBox xmlns="http://javafx.com/javafx/17"
+<VBox xmlns="http://javafx.com/javafx/17"
       xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.ce316.iae.ui.ConfigDialogController"
-      spacing="16"
-      prefWidth="680"
-      prefHeight="400">
+      styleClass="modal-surface"
+      prefWidth="780" prefHeight="500">
 
-    <padding>
-        <Insets top="16" right="16" bottom="16" left="16"/>
-    </padding>
-
-    <!-- ── Left panel ── -->
-    <VBox spacing="6" minWidth="180">
-
-        <Label text="Saved Configurations" style="-fx-font-weight:bold;"/>
-
-        <ListView fx:id="configListView"
-                  VBox.vgrow="ALWAYS">
-
-            <placeholder>
-                <Label text="No configurations yet."/>
-            </placeholder>
-
-        </ListView>
-
-        <HBox spacing="6">
-
-            <Button text="New"
-                    onAction="#handleNew"
-                    maxWidth="Infinity"
-                    HBox.hgrow="ALWAYS"/>
-
-            <Button text="Delete"
-                    onAction="#handleDelete"
-                    maxWidth="Infinity"
-                    HBox.hgrow="ALWAYS"
-                    style="-fx-text-fill: red;"/>
-
-        </HBox>
+    <!-- ─────────── HEADER ─────────── -->
+    <VBox styleClass="modal-header" spacing="4">
+        <Label text="CONFIGURATIONS" styleClass="label-overline"/>
+        <Label text="Language toolchains" styleClass="display-md"/>
+        <Label text="Configurations describe how to compile and execute student code for a given language. They are shared across all projects."
+               styleClass="body-sm,text-muted"
+               wrapText="true">
+            <VBox.margin><Insets top="4"/></VBox.margin>
+        </Label>
     </VBox>
 
-    <Separator orientation="VERTICAL"/>
+    <!-- ─────────── BODY: two-column split ─────────── -->
+    <HBox spacing="20" styleClass="modal-body" VBox.vgrow="ALWAYS">
 
-    <!-- ── Right panel ── -->
-    <VBox spacing="10" HBox.hgrow="ALWAYS">
+        <!-- LEFT: saved configurations list -->
+        <VBox spacing="10" minWidth="210" prefWidth="230">
+            <Label text="SAVED" styleClass="label-overline"/>
 
-        <Label text="Configuration Details"
-               style="-fx-font-weight:bold; -fx-font-size:13px;"/>
+            <ListView fx:id="configListView" VBox.vgrow="ALWAYS">
+                <placeholder>
+                    <VBox alignment="CENTER" spacing="6">
+                        <padding><Insets top="24" right="12" bottom="24" left="12"/></padding>
+                        <Label text="No configurations yet"
+                               styleClass="body-sm,text-strong"/>
+                        <Label text="Use New to create one."
+                               styleClass="body-sm,text-faint"/>
+                    </VBox>
+                </placeholder>
+            </ListView>
 
-        <GridPane hgap="10" vgap="8">
+            <HBox spacing="6">
+                <Button text="+ New"
+                        onAction="#handleNew"
+                        styleClass="btn-ghost"
+                        maxWidth="Infinity"
+                        HBox.hgrow="ALWAYS"/>
+                <Button text="Delete"
+                        onAction="#handleDelete"
+                        styleClass="btn-ghost,text-danger"
+                        maxWidth="Infinity"
+                        HBox.hgrow="ALWAYS"/>
+            </HBox>
+        </VBox>
 
-            <columnConstraints>
-                <ColumnConstraints minWidth="160" maxWidth="160"/>
-                <ColumnConstraints hgrow="ALWAYS"/>
-            </columnConstraints>
+        <!-- RIGHT: detail form -->
+        <VBox spacing="14" HBox.hgrow="ALWAYS">
+            <Label text="DETAILS" styleClass="label-overline"/>
 
-            <Label text="Name:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
-            <TextField fx:id="nameField"
-                       GridPane.columnIndex="1"
-                       GridPane.rowIndex="0"
-                       promptText="e.g. C Config"/>
+            <VBox spacing="6">
+                <Label text="NAME" styleClass="label-overline"/>
+                <TextField fx:id="nameField" promptText="e.g. C · gcc"/>
+            </VBox>
 
-            <Label text="Compiler / Interpreter:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
-            <TextField fx:id="compilerPathField"
-                       GridPane.columnIndex="1"
-                       GridPane.rowIndex="1"
-                       promptText="e.g. gcc or python3"/>
+            <VBox spacing="6">
+                <Label text="COMPILER / INTERPRETER" styleClass="label-overline"/>
+                <TextField fx:id="compilerPathField"
+                           promptText="e.g. gcc, python3, ghc"/>
+            </VBox>
 
-            <Label text="Compile Args:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
-            <TextField fx:id="compileArgsField"
-                       GridPane.columnIndex="1"
-                       GridPane.rowIndex="2"
-                       promptText="{SOURCE_FILE} -o {OUTPUT_PATH}"/>
+            <VBox spacing="6">
+                <Label text="COMPILE ARGUMENTS" styleClass="label-overline"/>
+                <TextField fx:id="compileArgsField"
+                           promptText="{SOURCE_FILE} -o {OUTPUT_PATH}"
+                           styleClass="mono"/>
+            </VBox>
 
-            <Label text="File to Compile:" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
-            <TextField fx:id="fileToCompileField"
-                       GridPane.columnIndex="1"
-                       GridPane.rowIndex="3"
-                       promptText="e.g. main.c"/>
+            <HBox spacing="14">
+                <VBox spacing="6" HBox.hgrow="ALWAYS">
+                    <Label text="FILE TO COMPILE" styleClass="label-overline"/>
+                    <TextField fx:id="fileToCompileField"
+                               promptText="main.c"
+                               styleClass="mono"/>
+                </VBox>
+                <VBox spacing="6" HBox.hgrow="ALWAYS">
+                    <Label text="EXECUTABLE PATH" styleClass="label-overline"/>
+                    <TextField fx:id="executablePathField"
+                               promptText="a.out"
+                               styleClass="mono"/>
+                </VBox>
+            </HBox>
 
-            <Label text="Executable Path:" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
-            <TextField fx:id="executablePathField"
-                       GridPane.columnIndex="1"
-                       GridPane.rowIndex="4"
-                       promptText="e.g. a.out or main"/>
-
-            <Label text="Interpreted language:" GridPane.columnIndex="0" GridPane.rowIndex="5"/>
             <CheckBox fx:id="interpretedCheckBox"
-                      GridPane.columnIndex="1"
-                      GridPane.rowIndex="5"
-                      text="(Python / scripting — no compilation step)"/>
+                      text="Interpreted language (no compile step — Python, JS, etc.)"/>
 
-        </GridPane>
+            <Label fx:id="statusLabel"
+                   text=""
+                   styleClass="body-sm,text-muted"
+                   wrapText="true"/>
 
-        <!-- Status -->
-        <Label fx:id="statusLabel"
-               text=""
-               style="-fx-text-fill: #555555;"
-               wrapText="true"/>
+            <Region VBox.vgrow="ALWAYS"/>
+        </VBox>
+    </HBox>
 
-        <!-- Push bottom -->
-        <Region VBox.vgrow="ALWAYS"/>
+    <!-- ─────────── FOOTER ─────────── -->
+    <HBox styleClass="modal-footer" spacing="10" alignment="CENTER_LEFT">
+        <Button text="Import…"
+                onAction="#handleImport"
+                styleClass="btn-ghost"/>
+        <Button text="Export…"
+                onAction="#handleExport"
+                styleClass="btn-ghost"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Button text="Close"
+                onAction="#handleClose"
+                styleClass="btn-ghost"
+                cancelButton="true"/>
+        <Button text="Save"
+                onAction="#handleSave"
+                styleClass="btn-primary"
+                defaultButton="true"/>
+    </HBox>
 
-        <!-- Buttons -->
-        <HBox spacing="8" alignment="CENTER_RIGHT">
-
-            <Button text="Import…"
-                    onAction="#handleImport"/>
-
-            <Button text="Export…"
-                    onAction="#handleExport"/>
-
-            <Separator orientation="VERTICAL"/>
-
-            <Button text="Save"
-                    onAction="#handleSave"
-                    defaultButton="true"
-                    style="-fx-font-weight:bold;"/>
-
-            <Button text="Close"
-                    onAction="#handleClose"
-                    cancelButton="true"/>
-
-        </HBox>
-
-    </VBox>
-
-</HBox>
+</VBox>

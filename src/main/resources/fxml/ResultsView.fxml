@@ -5,63 +5,59 @@
 <?import javafx.scene.layout.*?>
 
 <!--
-    ResultsView.fxml — Center/right panel showing the results table
-    and diff TextArea (fx:included from MainWindow.fxml).
-
-    Controller: com.ce316.iae.ui.ResultsViewController
+    ResultsView.fxml — embedded center pane.
+    Two stacked surfaces: results table above, diff card below.
 -->
 <VBox xmlns="http://javafx.com/javafx/17"
       xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.ce316.iae.ui.ResultsViewController"
-      spacing="6">
+      spacing="14">
 
-    <padding><Insets top="8" right="8" bottom="8" left="8"/></padding>
+    <!-- ───── Summary row ───── -->
+    <HBox alignment="CENTER_LEFT" spacing="14">
+        <Label text="RESULTS" styleClass="label-overline"/>
+        <Label fx:id="summaryLabel"
+               text="No run yet"
+               styleClass="body,text-muted"/>
+    </HBox>
 
-    <!-- ── Summary bar ── -->
-    <Label fx:id="summaryLabel"
-           text="No results yet."
-           style="-fx-font-size: 13px; -fx-font-weight: bold;"/>
-    <Separator/>
-
-    <!-- ── Results TableView ── -->
-    <TableView fx:id="resultsTable"
-               VBox.vgrow="ALWAYS">
-
-        <!-- placeholder must be a Node, not a String -->
+    <!-- ───── Results table (primary surface) ───── -->
+    <TableView fx:id="resultsTable" VBox.vgrow="ALWAYS">
         <placeholder>
-            <Label text="Run a project to see results."
-                   style="-fx-text-fill: #888888; -fx-font-style: italic;"/>
+            <VBox alignment="CENTER" spacing="8">
+                <padding><Insets top="36" right="24" bottom="36" left="24"/></padding>
+                <Label text="No results yet"
+                       styleClass="display-md"/>
+                <Label text="Use the Run grading button below to evaluate every submission against the project's test cases."
+                       styleClass="body-sm,text-muted"
+                       wrapText="true"
+                       maxWidth="380"
+                       style="-fx-text-alignment: center;"/>
+            </VBox>
         </placeholder>
 
         <columns>
-            <!-- Student ID -->
-            <TableColumn fx:id="studentIdColumn"
-                         text="Student ID"
-                         prefWidth="180"/>
-
-            <!-- Status (colour-coded by the controller's CellFactory) -->
-            <TableColumn fx:id="statusColumn"
-                         text="Status"
-                         prefWidth="160"/>
-
-            <!-- Error / info message -->
-            <TableColumn fx:id="errorColumn"
-                         text="Error / Info"
-                         prefWidth="400"/>
+            <TableColumn fx:id="studentIdColumn" text="STUDENT"      prefWidth="200"/>
+            <TableColumn fx:id="statusColumn"    text="STATUS"       prefWidth="160"/>
+            <TableColumn fx:id="errorColumn"     text="ERROR / INFO" prefWidth="420"/>
         </columns>
     </TableView>
 
-    <!-- ── Diff area label ── -->
-    <Label text="Output Diff (Expected vs. Actual):"
-           style="-fx-font-size: 12px; -fx-font-weight: bold;"/>
-
-    <!-- ── Diff TextArea ── -->
-    <TextArea fx:id="diffTextArea"
-              VBox.vgrow="SOMETIMES"
-              prefHeight="160"
-              editable="false"
-              wrapText="true"
-              promptText="Click a row to see the diff."
-              style="-fx-font-family: monospace; -fx-font-size: 12px;"/>
+    <!-- ───── Diff card ───── -->
+    <VBox spacing="8" styleClass="tile">
+        <HBox alignment="CENTER_LEFT" spacing="10">
+            <Label text="DIFF" styleClass="label-overline"/>
+            <Label text="expected vs. actual"
+                   styleClass="body-sm,text-faint"/>
+        </HBox>
+        <TextArea fx:id="diffTextArea"
+                  VBox.vgrow="SOMETIMES"
+                  prefHeight="170"
+                  minHeight="120"
+                  editable="false"
+                  wrapText="true"
+                  promptText="Select a row above to inspect expected vs. actual output."
+                  styleClass="mono"/>
+    </VBox>
 
 </VBox>

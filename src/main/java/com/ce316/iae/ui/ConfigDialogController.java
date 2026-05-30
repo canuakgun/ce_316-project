@@ -139,8 +139,9 @@ public class ConfigDialogController {
 
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
         confirm.setTitle("Delete Configuration");
-        confirm.setHeaderText(null);
-        confirm.setContentText("Delete \"" + target.getName() + "\"?");
+        confirm.setHeaderText("Delete this configuration?");
+        confirm.setContentText("Delete \"" + target.getName() + "\"? Projects using it will lose the link.");
+        ThemeManager.apply(confirm);
         if (confirm.showAndWait().filter(b -> b == ButtonType.OK).isEmpty()) return;
 
         try {

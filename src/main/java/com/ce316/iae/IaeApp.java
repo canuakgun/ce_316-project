@@ -2,6 +2,7 @@ package com.ce316.iae;
 
 import com.ce316.iae.persistence.PersistenceManager;
 import com.ce316.iae.service.ConfigurationManager;
+import com.ce316.iae.ui.ThemeManager;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -14,15 +15,16 @@ public class IaeApp extends Application {
 
     @Override
     public void start(Stage stage) throws IOException {
-        // Bootstrap the DB (creates %APPDATA%\IAE\ + 5 tables) and seed defaults
         new ConfigurationManager(PersistenceManager.getInstance()).seedDefaultsIfEmpty();
 
         FXMLLoader loader = new FXMLLoader(Objects.requireNonNull(
                 IaeApp.class.getResource("/fxml/MainWindow.fxml")));
-        Scene scene = new Scene(loader.load(), 1100, 700);
-        stage.setTitle("IAE – Integrated Assignment Environment");
-        stage.setMinWidth(900);
-        stage.setMinHeight(600);
+        Scene scene = new Scene(loader.load(), 1180, 760);
+        ThemeManager.apply(scene);
+
+        stage.setTitle("IAE — Integrated Assignment Environment");
+        stage.setMinWidth(960);
+        stage.setMinHeight(640);
         stage.setScene(scene);
         stage.show();
     }

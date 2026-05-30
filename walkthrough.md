@@ -4,7 +4,7 @@
 
 The **Integrated Assignment Environment** automates lecturer grading workflows:
 
-1. Students submit source-code **ZIP files** named `STUDENTID.zip` (e.g. `220201085.zip`).
+1. Students submit source-code **ZIP files** named `STUDENTID.zip` (e.g. `20230602024.zip`).
 2. IAE **extracts**, **compiles**, and **runs** each submission against your **test cases**.
 3. It compares the program's stdout to your expected output and produces a **pass/fail report**.
 
@@ -67,20 +67,20 @@ Use **⬆ Import…** to load that file on another machine — it gets a fresh d
 
 ## Step 2 — Prepare Student Submissions
 
-Submissions must be **ZIP files** named with the **9-digit student ID**:
+Submissions must be **ZIP files** named with the **11-digit student ID**:
 
 ```
 submissions/
-  ├── 220201085.zip   ← contains main.c
-  ├── 220201086.zip   ← contains main.c
-  └── 220201087.zip
+  ├── 20230602024.zip   ← contains main.c
+  ├── 20230602025.zip   ← contains main.c
+  └── 20230602026.zip
 ```
 
 Each ZIP **must contain** the source file that matches the configuration  
 (e.g. `main.c` for "C Language"). The zip may have subdirectories; IAE will search for the file.
 
 > [!IMPORTANT]
-> ZIP files named anything other than a 9-digit number (e.g. `homework1.zip`) will be marked as **SKIPPED** — this is by design.
+> ZIP files named anything other than an 11-digit number (e.g. `homework1.zip`) will be marked as **SKIPPED** — this is by design.
 
 ---
 
@@ -165,10 +165,10 @@ Select a project in the sidebar, then click:
        Args: "10 - 6"   Expected: "4"
 3. ▶ Run Project
 4. Review results:
-     220201085 → ✅ SUCCESS
-     220201086 → ❌ WRONG_OUTPUT  (got "7.0" instead of "7")
-     220201087 → ✗ COMPILE_ERROR  (see Detail pane for stderr)
-     220201088 → — SKIPPED  (ZIP was named incorrectly)
+     20230602024 → ✅ SUCCESS
+     20230602025 → ❌ WRONG_OUTPUT  (got "7.0" instead of "7")
+     20230602026 → ✗ COMPILE_ERROR  (see Detail pane for stderr)
+     20230602027 → — SKIPPED  (ZIP was named incorrectly)
 5. ✎ Edit project to add/fix a test case, then re-run
 ```
 
@@ -182,7 +182,7 @@ Select a project in the sidebar, then click:
 | Run button fires the pipeline multiple times | Fixed in latest version — each click is now guarded. |
 | Progress bar shows 0% | Make sure the submissions directory exists and contains `.zip` files. |
 | Config dialog Save button stays visible when no config is selected | Fixed — the whole form now hides correctly. |
-| Student ZIP is SKIPPED | Rename the ZIP to exactly `STUDENTID.zip` (9 digits, no other chars). |
+| Student ZIP is SKIPPED | Rename the ZIP to exactly `STUDENTID.zip` (11 digits, no other chars). |
 | Running the same project twice shows duplicate rows | Fixed — observer is now cleaned up after each run. |
 
 ---

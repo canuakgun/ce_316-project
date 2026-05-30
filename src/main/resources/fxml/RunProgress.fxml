@@ -6,32 +6,34 @@
 
 <!--
     RunProgress.fxml — Modal progress dialog shown during a pipeline run.
-    Controller: com.ce316.iae.ui.RunProgressController
 -->
 <VBox xmlns="http://javafx.com/javafx/17"
       xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.ce316.iae.ui.RunProgressController"
-      spacing="14" prefWidth="400" prefHeight="140"
-      style="-fx-background-color: white;">
+      styleClass="modal-surface"
+      prefWidth="440">
 
-    <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+    <VBox styleClass="modal-header" spacing="4">
+        <Label text="RUNNING" styleClass="label-overline"/>
+        <Label text="Grading in progress" styleClass="display-md"/>
+    </VBox>
 
-    <!-- Status message -->
-    <Label fx:id="statusLabel"
-           text="Starting…"
-           wrapText="true"
-           style="-fx-font-size: 13px;"/>
+    <VBox styleClass="modal-body" spacing="14">
+        <Label fx:id="statusLabel"
+               text="Starting…"
+               styleClass="body,text-muted"
+               wrapText="true"/>
 
-    <!-- Progress bar — fills the width -->
-    <ProgressBar fx:id="progressBar"
-                 maxWidth="Infinity"
-                 prefHeight="18"/>
+        <ProgressBar fx:id="progressBar"
+                     maxWidth="Infinity"
+                     prefHeight="6"/>
+    </VBox>
 
-    <!-- Cancel button aligned to the right -->
-    <HBox alignment="CENTER_RIGHT">
+    <HBox styleClass="modal-footer" alignment="CENTER_RIGHT">
         <Button fx:id="cancelButton"
-                text="Cancel"
+                text="Cancel run"
                 onAction="#handleCancel"
+                styleClass="btn-ghost"
                 cancelButton="true"/>
     </HBox>
 

@@ -5,75 +5,118 @@
 <?import javafx.scene.layout.*?>
 
 <!--
-    ProjectDialog.fxml — Create / edit a project.
-    Controller: com.ce316.iae.ui.ProjectDialogController
+    ProjectDialog.fxml — Create / Edit a project.
+    Modal-surface treatment with header / body / footer zones.
 -->
 <VBox xmlns="http://javafx.com/javafx/17"
       xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.ce316.iae.ui.ProjectDialogController"
-      spacing="12" prefWidth="520">
+      styleClass="modal-surface"
+      prefWidth="600">
 
-    <padding><Insets top="16" right="16" bottom="16" left="16"/></padding>
+    <!-- ─────────── HEADER ─────────── -->
+    <VBox styleClass="modal-header" spacing="4">
+        <Label text="PROJECT" styleClass="label-overline"/>
+        <Label text="Configure assignment" styleClass="display-md"/>
+        <Label text="A project pairs one language configuration with a folder of student submissions and the test cases used to grade them."
+               styleClass="body-sm,text-muted"
+               wrapText="true">
+            <VBox.margin><Insets top="4"/></VBox.margin>
+        </Label>
+    </VBox>
 
-    <!-- Project name -->
-    <Label text="Project Name:" style="-fx-font-weight:bold;"/>
-    <TextField fx:id="nameField" promptText="e.g. Sorting Assignment Spring 2025"/>
+    <!-- ─────────── BODY ─────────── -->
+    <VBox styleClass="modal-body" spacing="16">
 
-    <!-- Language configuration -->
-    <Label text="Language Configuration:" style="-fx-font-weight:bold;"/>
-    <ComboBox fx:id="configComboBox" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+        <!-- Project name -->
+        <VBox spacing="6">
+            <Label text="PROJECT NAME" styleClass="label-overline"/>
+            <TextField fx:id="nameField"
+                       promptText="e.g. Sorting Assignment · Spring 2025"/>
+        </VBox>
 
-    <!-- Submissions directory -->
-    <Label text="Submissions Directory:" style="-fx-font-weight:bold;"/>
-    <HBox spacing="8">
-        <TextField fx:id="submissionsDirField" promptText="Path to folder containing student ZIPs"
-                   HBox.hgrow="ALWAYS"/>
-        <Button text="Browse…" onAction="#handleBrowseDirectory"/>
-    </HBox>
+        <!-- Two-up row: configuration + submissions dir -->
+        <VBox spacing="6">
+            <Label text="LANGUAGE CONFIGURATION" styleClass="label-overline"/>
+            <ComboBox fx:id="configComboBox" maxWidth="Infinity"/>
+        </VBox>
 
-    <Separator/>
+        <VBox spacing="6">
+            <Label text="SUBMISSIONS DIRECTORY" styleClass="label-overline"/>
+            <HBox spacing="8">
+                <TextField fx:id="submissionsDirField"
+                           promptText="Path to folder containing student ZIPs"
+                           HBox.hgrow="ALWAYS"/>
+                <Button text="Browse…"
+                        onAction="#handleBrowseDirectory"
+                        styleClass="btn-ghost"/>
+            </HBox>
+        </VBox>
 
-    <!-- Test cases -->
-    <Label text="Test Cases:" style="-fx-font-weight:bold;"/>
+        <!-- Test cases tile -->
+        <VBox spacing="10" styleClass="tile">
+            <HBox alignment="CENTER_LEFT" spacing="10">
+                <Label text="TEST CASES" styleClass="label-overline"/>
+                <Region HBox.hgrow="ALWAYS"/>
+            </HBox>
 
-    <!-- Input row -->
-    <GridPane hgap="8" vgap="4">
-        <columnConstraints>
-            <ColumnConstraints hgrow="ALWAYS"/>
-            <ColumnConstraints hgrow="ALWAYS"/>
-            <ColumnConstraints minWidth="70" maxWidth="70"/>
-        </columnConstraints>
-        <Label text="Input Args"        GridPane.columnIndex="0" GridPane.rowIndex="0"/>
-        <Label text="Expected Output"   GridPane.columnIndex="1" GridPane.rowIndex="0"/>
-        <TextField fx:id="inputArgsField"    promptText="e.g. banana apple"
-                   GridPane.columnIndex="0"  GridPane.rowIndex="1"/>
-        <TextField fx:id="expectedOutputField" promptText="e.g. apple banana"
-                   GridPane.columnIndex="1"  GridPane.rowIndex="1"/>
-        <Button text="Add" onAction="#handleAddTestCase"
-                GridPane.columnIndex="2" GridPane.rowIndex="1"
-                maxWidth="Infinity"/>
-    </GridPane>
+            <GridPane hgap="8" vgap="6">
+                <columnConstraints>
+                    <ColumnConstraints hgrow="ALWAYS"/>
+                    <ColumnConstraints hgrow="ALWAYS"/>
+                    <ColumnConstraints minWidth="78" maxWidth="78"/>
+                </columnConstraints>
+                <Label text="Input args"      styleClass="label-overline"
+                       GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                <Label text="Expected output" styleClass="label-overline"
+                       GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                <TextField fx:id="inputArgsField"
+                           promptText="banana apple"
+                           GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                <TextField fx:id="expectedOutputField"
+                           promptText="apple banana"
+                           GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                <Button text="Add"
+                        onAction="#handleAddTestCase"
+                        styleClass="btn-primary"
+                        maxWidth="Infinity"
+                        GridPane.columnIndex="2" GridPane.rowIndex="1"/>
+            </GridPane>
 
-    <!-- Test case list -->
-    <ListView fx:id="testCaseListView" prefHeight="120">
-        <placeholder>
-            <Label text="No test cases yet."/>
-        </placeholder>
-    </ListView>
+            <ListView fx:id="testCaseListView" prefHeight="140">
+                <placeholder>
+                    <Label text="No test cases yet — add one above."
+                           styleClass="body-sm,text-faint"/>
+                </placeholder>
+            </ListView>
 
-    <Button text="Remove Selected" onAction="#handleRemoveTestCase"
-            alignment="CENTER_RIGHT"/>
+            <HBox alignment="CENTER_RIGHT">
+                <Button text="Remove selected"
+                        onAction="#handleRemoveTestCase"
+                        styleClass="btn-ghost,text-danger"/>
+            </HBox>
+        </VBox>
 
-    <Separator/>
+        <!-- Validation error -->
+        <Label fx:id="errorLabel"
+               text=""
+               styleClass="field-error"
+               visible="false"
+               managed="false"
+               wrapText="true"/>
 
-    <!-- Validation error -->
-    <Label fx:id="errorLabel" text="" style="-fx-text-fill: red;" visible="false"/>
+    </VBox>
 
-    <!-- OK / Cancel -->
-    <HBox spacing="10" alignment="CENTER_RIGHT">
-        <Button text="Cancel"  onAction="#handleCancel"/>
-        <Button text="OK"      onAction="#handleConfirm"
-                style="-fx-font-weight:bold;" defaultButton="true"/>
+    <!-- ─────────── FOOTER ─────────── -->
+    <HBox styleClass="modal-footer" spacing="10" alignment="CENTER_RIGHT">
+        <Button text="Cancel"
+                onAction="#handleCancel"
+                styleClass="btn-ghost"
+                cancelButton="true"/>
+        <Button text="Save project"
+                onAction="#handleConfirm"
+                styleClass="btn-primary"
+                defaultButton="true"/>
     </HBox>
 
 </VBox>

@@ -1,0 +1,735 @@
+/* =============================================================
+   IAE — Oxide Theme
+   Design token system for JavaFX. Inspired by Stripe Press +
+   vintage Penguin paperbacks: editorial seriousness, restrained
+   chroma, a single oxide accent doing all the work.
+
+   Token strategy:
+   - All colors declared as lookup values on `.root` so any node
+     can resolve them. This is JavaFX's analogue of CSS custom
+     properties. Swap `.root` to `.root.theme-light` for a paper
+     alternative without re-editing component rules.
+   - 1px structural borders use the JavaFX two-layer background
+     trick: `-fx-background-color: <border>, <fill>;` with stacked
+     `-fx-background-insets`. Cleaner than `-fx-border-*`.
+   - Effects are written inline because JavaFX CSS cannot lookup
+     effect tokens. Reuse the named string verbatim.
+   ============================================================= */
+
+/* -------------------------------------------------------------
+   1. ROOT TOKENS
+   ------------------------------------------------------------- */
+.root {
+    /* Surfaces — warm ink, layered toward light */
+    -color-bg:           #0F0E0C;
+    -color-bg-elevated:  #15130F;
+    -color-surface:      #1A1815;
+    -color-surface-2:    #221F1B;
+    -color-surface-3:    #2D2924;
+
+    /* Borders — sharp structural 1px containment */
+    -color-border:       #2A2620;
+    -color-border-soft:  #1F1C18;
+    -color-border-loud:  #3D352B;
+
+    /* Ink — bone hierarchy */
+    -color-text:         #EDE6D8;
+    -color-text-muted:   #9C9388;
+    -color-text-faint:   #6B6357;
+    -color-text-inverse: #15130F;
+
+    /* Accent — oxide rust, doing all the chromatic work */
+    -color-accent:        #C2410C;
+    -color-accent-hover:  #D44D17;
+    -color-accent-press:  #A8350A;
+    -color-accent-soft:   #2A1810;
+    -color-accent-glow:   rgba(194, 65, 12, 0.18);
+
+    /* Semantic */
+    -color-success:      #65A30D;
+    -color-success-soft: #1A2010;
+    -color-warning:      #D4A574;
+    -color-warning-soft: #2A1F10;
+    -color-danger:       #DC2626;
+    -color-danger-soft:  #2A1010;
+
+    /* Focus ring — used by every interactive element */
+    -color-focus-ring:   rgba(194, 65, 12, 0.45);
+
+    /* Typography family stack — Win11 native, no downloads */
+    -font-display: "Sitka Display", "Cambria", "Iowan Old Style", "Palatino", serif;
+    -font-sans:    "Aptos", "Aptos Display", "Segoe UI Variable", "Segoe UI", "Avenir Next", sans-serif;
+    -font-mono:    "Cascadia Code", "JetBrains Mono", "Consolas", "Menlo", monospace;
+
+    /* Base inherited */
+    -fx-font-family: -font-sans;
+    -fx-font-size: 13px;
+    -fx-text-fill: -color-text;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+    -fx-background-color: -color-bg;
+}
+
+/* -------------------------------------------------------------
+   2. APP SHELL
+   ------------------------------------------------------------- */
+.app-root {
+    -fx-background-color: -color-bg;
+}
+
+.app-canvas {
+    /* Subtle radial vignette gives the canvas depth without
+       turning into a gradient mess. */
+    -fx-background-color:
+        radial-gradient(center 70% 0%, radius 80%, rgba(194,65,12,0.045), transparent),
+        -color-bg;
+}
+
+.app-sidebar {
+    /* Sidebar sits on a darker offset surface — the asymmetric move
+       that breaks the symmetric two-pane grid. */
+    -fx-background-color: -color-bg-elevated;
+    -fx-border-color: -color-border-soft;
+    -fx-border-width: 0 1 0 0;
+}
+
+.app-hero {
+    /* Hero strip above the canvas: title + status pulse. */
+    -fx-background-color: transparent;
+}
+
+.divider-hairline {
+    -fx-background-color: -color-border-soft;
+    -fx-pref-height: 1;
+    -fx-min-height: 1;
+    -fx-max-height: 1;
+}
+
+/* -------------------------------------------------------------
+   3. TYPOGRAPHY
+   ------------------------------------------------------------- */
+.display-xl {
+    -fx-font-family: -font-display;
+    -fx-font-size: 32px;
+    -fx-font-weight: 500;
+    -fx-text-fill: -color-text;
+}
+
+.display-md {
+    -fx-font-family: -font-display;
+    -fx-font-size: 19px;
+    -fx-font-weight: 500;
+    -fx-text-fill: -color-text;
+}
+
+.label-overline {
+    -fx-font-family: -font-sans;
+    -fx-font-size: 10px;
+    -fx-font-weight: 700;
+    -fx-text-fill: -color-text-faint;
+    /* JavaFX has no letter-spacing in CSS; tracking is encoded
+       in the literal text where it matters (uppercase + spaces). */
+}
+
+.body { -fx-font-size: 13px; -fx-text-fill: -color-text; }
+.body-sm { -fx-font-size: 11.5px; -fx-text-fill: -color-text; }
+
+.text-muted   { -fx-text-fill: -color-text-muted; }
+.text-faint   { -fx-text-fill: -color-text-faint; }
+.text-strong  { -fx-text-fill: -color-text; -fx-font-weight: 600; }
+.text-accent  { -fx-text-fill: -color-accent; }
+.text-danger  { -fx-text-fill: -color-danger; }
+.text-success { -fx-text-fill: -color-success; }
+
+.mono {
+    -fx-font-family: -font-mono;
+    -fx-font-size: 12px;
+}
+
+/* Subtle drop-cap-style serial number used in project list */
+.serial {
+    -fx-font-family: -font-mono;
+    -fx-font-size: 10.5px;
+    -fx-text-fill: -color-text-faint;
+}
+
+/* -------------------------------------------------------------
+   4. MENU BAR — restrained, dark, native-feeling
+   ------------------------------------------------------------- */
+.menu-bar {
+    -fx-background-color: -color-bg-elevated;
+    -fx-border-color: -color-border-soft;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 4 8;
+}
+.menu-bar .label { -fx-text-fill: -color-text-muted; -fx-font-size: 12px; }
+.menu-bar .menu:hover, .menu-bar .menu:showing {
+    -fx-background-color: -color-surface-2;
+    -fx-background-radius: 4;
+}
+.menu-bar .menu:hover .label,
+.menu-bar .menu:showing .label { -fx-text-fill: -color-text; }
+
+.context-menu, .menu-item .label {
+    -fx-text-fill: -color-text;
+}
+.context-menu {
+    -fx-background-color: -color-border, -color-surface-2;
+    -fx-background-insets: 0, 1;
+    -fx-background-radius: 6, 5;
+    -fx-padding: 4;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 24, 0.1, 0, 8);
+}
+.menu-item { -fx-padding: 6 12; -fx-background-radius: 4; }
+.menu-item:focused { -fx-background-color: -color-surface-3; }
+.menu-item:focused .label { -fx-text-fill: -color-text; }
+.menu-item .accelerator-text { -fx-text-fill: -color-text-faint; }
+
+/* -------------------------------------------------------------
+   5. BUTTONS
+   ------------------------------------------------------------- */
+.button {
+    -fx-font-family: -font-sans;
+    -fx-font-size: 12.5px;
+    -fx-font-weight: 500;
+    -fx-text-fill: -color-text;
+    -fx-background-color: -color-border, -color-surface-2;
+    -fx-background-insets: 0, 1;
+    -fx-background-radius: 6, 5;
+    -fx-padding: 7 14;
+    -fx-cursor: hand;
+}
+.button:hover {
+    -fx-background-color: -color-border-loud, -color-surface-3;
+}
+.button:pressed {
+    -fx-background-color: -color-border-loud, -color-surface-2;
+}
+.button:focused {
+    -fx-background-color: -color-focus-ring, -color-surface-2;
+    -fx-background-insets: -2, 1;
+    -fx-background-radius: 7, 5;
+}
+.button:disabled { -fx-opacity: 0.4; -fx-cursor: default; }
+
+/* Ghost — for sidebar action chips and secondary CTAs.
+   NB: explicit single-layer background sizes (color/insets/radius) to
+   avoid JavaFX CSS layer-count mismatch with the .button base which is
+   two-layered. Mixing would produce ghosted artifacts. */
+.btn-ghost {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-background-radius: 6;
+    -fx-text-fill: -color-text-muted;
+    -fx-padding: 6 10;
+}
+.btn-ghost:hover {
+    -fx-background-color: -color-surface-2;
+    -fx-text-fill: -color-text;
+}
+.btn-ghost:pressed {
+    -fx-background-color: -color-surface;
+}
+.btn-ghost:focused {
+    -fx-background-color: -color-surface-2;
+    -fx-background-insets: 0;
+    -fx-background-radius: 6;
+}
+
+/* Primary — accent fill, the only button that earns chroma */
+.btn-primary {
+    -fx-text-fill: -color-text-inverse;
+    -fx-background-color: -color-accent;
+    -fx-background-insets: 0;
+    -fx-background-radius: 6;
+    -fx-font-weight: 700;
+    -fx-padding: 8 18;
+    -fx-effect: dropshadow(gaussian, -color-accent-glow, 18, 0.2, 0, 4);
+}
+.btn-primary:hover {
+    -fx-background-color: -color-accent-hover;
+    -fx-effect: dropshadow(gaussian, -color-accent-glow, 24, 0.35, 0, 6);
+}
+.btn-primary:pressed {
+    -fx-background-color: -color-accent-press;
+    -fx-effect: dropshadow(gaussian, -color-accent-glow, 12, 0.2, 0, 2);
+}
+
+/* Floating run pill — the magnetic CTA, oversized, the only round
+   thing in the UI so the eye lands on it immediately. */
+.btn-pill {
+    -fx-text-fill: -color-text-inverse;
+    -fx-background-color: -color-accent;
+    -fx-background-insets: 0;
+    -fx-background-radius: 999;
+    -fx-font-family: -font-sans;
+    -fx-font-size: 13.5px;
+    -fx-font-weight: 700;
+    -fx-padding: 11 26 11 22;
+    -fx-effect: dropshadow(gaussian, rgba(194,65,12,0.35), 28, 0.2, 0, 8);
+    -fx-cursor: hand;
+}
+.btn-pill:hover {
+    -fx-background-color: -color-accent-hover;
+    -fx-effect: dropshadow(gaussian, rgba(194,65,12,0.55), 38, 0.3, 0, 10);
+}
+.btn-pill:pressed {
+    -fx-background-color: -color-accent-press;
+}
+.btn-pill:disabled {
+    -fx-opacity: 0.35;
+    -fx-effect: none;
+}
+
+/* Danger — only on delete confirmations */
+.btn-danger {
+    -fx-text-fill: -color-danger;
+    -fx-background-color: -color-border, -color-surface-2;
+    -fx-background-insets: 0, 1;
+    -fx-background-radius: 6, 5;
+}
+.btn-danger:hover {
+    -fx-text-fill: #FFEDED;
+    -fx-background-color: -color-danger, -color-danger-soft;
+}
+
+/* Icon-only square button used in sidebar actions */
+.btn-icon {
+    -fx-padding: 7 9;
+    -fx-font-size: 14px;
+}
+
+/* -------------------------------------------------------------
+   6. TEXT INPUTS
+   ------------------------------------------------------------- */
+.text-field, .text-area {
+    -fx-font-family: -font-sans;
+    -fx-font-size: 13px;
+    -fx-text-fill: -color-text;
+    -fx-prompt-text-fill: -color-text-faint;
+    -fx-background-color: -color-border, -color-surface;
+    -fx-background-insets: 0, 1;
+    -fx-background-radius: 6, 5;
+    -fx-padding: 8 12;
+}
+.text-field:focused, .text-area:focused {
+    -fx-background-color: -color-accent, -color-surface;
+    -fx-background-insets: 0, 1;
+}
+.text-area {
+    -fx-padding: 0;
+}
+.text-area .content {
+    -fx-background-color: transparent;
+    -fx-padding: 8 12;
+}
+.text-area > .scroll-pane,
+.text-area > .scroll-pane > .viewport {
+    -fx-background-color: transparent;
+}
+
+/* ComboBox follows Modena's pattern: outer is the border+surface
+   wrapper, the inner button-cell owns the text padding. Otherwise
+   stacking outer padding + cell padding squeezes the closed-state
+   text into a sliver. */
+.combo-box-base {
+    -fx-background-color: -color-border, -color-surface;
+    -fx-background-insets: 0, 1;
+    -fx-background-radius: 6, 5;
+    -fx-padding: 0;
+    -fx-text-fill: -color-text;
+    -fx-prompt-text-fill: -color-text-faint;
+    -fx-font-family: -font-sans;
+    -fx-font-size: 13px;
+}
+.combo-box-base:focused {
+    -fx-background-color: -color-accent, -color-surface;
+    -fx-background-insets: 0, 1;
+}
+.combo-box-base .arrow-button {
+    -fx-background-color: transparent;
+    -fx-padding: 0 12 0 6;
+}
+.combo-box-base .arrow {
+    -fx-background-color: -color-text-muted;
+    -fx-padding: 3 4 3 4;
+}
+.combo-box-base:focused .arrow { -fx-background-color: -color-accent; }
+
+/* The closed-state cell that shows the selected value (or prompt). */
+.combo-box > .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: -color-text;
+    -fx-padding: 8 4 8 12;
+    -fx-border-color: transparent;
+    -fx-prompt-text-fill: -color-text-faint;
+}
+.combo-box-popup .list-view {
+    -fx-background-color: -color-border, -color-surface-2;
+    -fx-background-insets: 0, 1;
+    -fx-background-radius: 6, 5;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 24, 0.1, 0, 8);
+}
+.combo-box-popup .list-cell:filled:hover {
+    -fx-background-color: -color-surface-3;
+}
+.combo-box-popup .list-cell:filled:selected {
+    -fx-background-color: -color-accent-soft;
+    -fx-text-fill: -color-accent;
+}
+
+/* CheckBox */
+.check-box .box {
+    -fx-background-color: -color-border, -color-surface-2;
+    -fx-background-insets: 0, 1;
+    -fx-background-radius: 4, 3;
+    -fx-padding: 3;
+}
+.check-box:selected .box {
+    -fx-background-color: -color-accent;
+    -fx-background-insets: 0;
+}
+.check-box:selected .mark {
+    -fx-background-color: -color-text-inverse;
+}
+.check-box .text { -fx-fill: -color-text; }
+
+/* -------------------------------------------------------------
+   7. LIST + TABLE
+   ------------------------------------------------------------- */
+.list-view {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+.list-view .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: -color-text;
+    -fx-padding: 7 12;
+    -fx-border-color: transparent transparent -color-border-soft transparent;
+    -fx-border-width: 0 0 1 0;
+}
+.list-view .list-cell:filled:hover {
+    -fx-background-color: -color-surface-2;
+}
+.list-view .list-cell:filled:selected,
+.list-view .list-cell:filled:selected:focused {
+    -fx-background-color: -color-accent-soft;
+    -fx-text-fill: -color-text;
+    -fx-border-color: transparent;
+}
+.list-view:focused .list-cell:filled:selected {
+    -fx-background-color: -color-accent-soft;
+}
+.list-view .placeholder .label {
+    -fx-text-fill: -color-text-faint;
+    -fx-font-style: italic;
+}
+/* Cells in a ComboBox popup must NOT have the divider line; that's a
+   list-of-records affordance, wrong for a dropdown menu. */
+.combo-box-popup .list-view .list-cell {
+    -fx-border-color: transparent;
+    -fx-padding: 6 12;
+}
+
+/* Compact list — used for the "Details" sub-list */
+.list-compact .list-cell {
+    -fx-padding: 3 10;
+    -fx-font-family: -font-mono;
+    -fx-font-size: 11.5px;
+    -fx-text-fill: -color-text-muted;
+    -fx-border-color: transparent;
+}
+.list-compact .list-cell:filled:hover {
+    -fx-background-color: transparent;
+}
+
+/* Table */
+.table-view {
+    -fx-background-color: -color-border, -color-surface;
+    -fx-background-insets: 0, 1;
+    -fx-background-radius: 8, 7;
+    -fx-padding: 0;
+    -fx-table-cell-border-color: transparent;
+}
+.table-view .column-header-background {
+    -fx-background-color: -color-surface-2;
+    -fx-background-radius: 7 7 0 0;
+    -fx-padding: 0;
+}
+.table-view .column-header,
+.table-view .filler {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent transparent -color-border transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-size: 38;
+    -fx-padding: 0 12;
+}
+.table-view .column-header .label {
+    -fx-text-fill: -color-text-faint;
+    -fx-font-size: 10.5px;
+    -fx-font-weight: 700;
+    -fx-alignment: CENTER_LEFT;
+}
+.table-view .table-row-cell {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent transparent -color-border-soft transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-cell-size: 34;
+}
+.table-view .table-row-cell:filled:hover {
+    -fx-background-color: -color-surface-2;
+}
+.table-view .table-row-cell:filled:selected {
+    -fx-background-color: -color-accent-soft;
+}
+.table-view .table-cell {
+    -fx-text-fill: -color-text;
+    -fx-padding: 0 12;
+    -fx-alignment: CENTER_LEFT;
+    -fx-border-color: transparent;
+}
+.table-view .placeholder .label {
+    -fx-text-fill: -color-text-faint;
+    -fx-font-style: italic;
+}
+
+/* Status cell variants used by the controller's cell factory */
+.status-pass    { -fx-text-fill: -color-success; -fx-font-weight: 600; }
+.status-fail    { -fx-text-fill: -color-danger;  -fx-font-weight: 600; }
+.status-error   { -fx-text-fill: -color-warning; -fx-font-weight: 600; }
+.status-pending { -fx-text-fill: -color-text-faint; }
+
+/* -------------------------------------------------------------
+   8. SCROLLBARS — slim, near-invisible until needed
+   ------------------------------------------------------------- */
+.scroll-bar:vertical, .scroll-bar:horizontal {
+    -fx-background-color: transparent;
+    -fx-padding: 2;
+}
+.scroll-bar .track,
+.scroll-bar .track-background { -fx-background-color: transparent; }
+.scroll-bar .thumb {
+    -fx-background-color: -color-surface-3;
+    -fx-background-radius: 4;
+    -fx-background-insets: 2;
+}
+.scroll-bar .thumb:hover { -fx-background-color: -color-border-loud; }
+.scroll-bar .increment-button,
+.scroll-bar .decrement-button {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+.scroll-bar .increment-arrow,
+.scroll-bar .decrement-arrow { -fx-shape: " "; -fx-padding: 0; }
+
+.scroll-pane { -fx-background-color: transparent; }
+.scroll-pane > .viewport { -fx-background-color: transparent; }
+
+/* -------------------------------------------------------------
+   9. SPLIT PANE — invisible divider with subtle hover affordance
+   ------------------------------------------------------------- */
+.split-pane {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+.split-pane > .split-pane-divider {
+    -fx-background-color: -color-border-soft;
+    -fx-padding: 0 0.5;
+}
+.split-pane > .split-pane-divider:hover {
+    -fx-background-color: -color-accent-soft;
+}
+
+/* -------------------------------------------------------------
+   10. SEPARATOR
+   ------------------------------------------------------------- */
+.separator .line {
+    -fx-border-color: -color-border-soft transparent transparent transparent;
+    -fx-border-insets: 4 0 0 0;
+}
+.separator:vertical .line {
+    -fx-border-color: transparent transparent transparent -color-border-soft;
+    -fx-border-insets: 0 0 0 4;
+}
+
+/* -------------------------------------------------------------
+   11. PROGRESS BAR
+   ------------------------------------------------------------- */
+.progress-bar {
+    -fx-pref-height: 6;
+    -fx-background-color: -color-surface-2;
+    -fx-background-radius: 999;
+}
+.progress-bar > .track {
+    -fx-background-color: transparent;
+    -fx-background-radius: 999;
+}
+.progress-bar > .bar {
+    -fx-background-color: linear-gradient(to right, -color-accent-press, -color-accent);
+    -fx-background-insets: 0;
+    -fx-background-radius: 999;
+    -fx-padding: 3;
+}
+
+.progress-thin > .bar { -fx-padding: 2; }
+
+/* -------------------------------------------------------------
+   12. STATUS DOT + PULSE
+   Custom states are toggled via PseudoClass from Java.
+   ------------------------------------------------------------- */
+.status-dot {
+    -fx-min-width: 8;  -fx-pref-width: 8;  -fx-max-width: 8;
+    -fx-min-height: 8; -fx-pref-height: 8; -fx-max-height: 8;
+    -fx-background-radius: 999;
+    -fx-background-color: -color-text-faint;
+}
+.status-dot:idle    { -fx-background-color: -color-text-faint; }
+.status-dot:running {
+    -fx-background-color: -color-accent;
+    -fx-effect: dropshadow(gaussian, -color-accent, 12, 0.6, 0, 0);
+}
+.status-dot:ok      { -fx-background-color: -color-success; }
+.status-dot:error   { -fx-background-color: -color-danger; }
+
+.status-line {
+    -fx-font-family: -font-mono;
+    -fx-font-size: 11px;
+    -fx-text-fill: -color-text-muted;
+}
+
+/* -------------------------------------------------------------
+   13. MODAL / DIALOG SURFACES
+   ------------------------------------------------------------- */
+.modal-surface {
+    -fx-background-color:
+        -color-border, -color-bg-elevated;
+    -fx-background-insets: 0, 1;
+    -fx-background-radius: 12, 11;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.6), 48, 0.1, 0, 16);
+}
+
+.modal-header {
+    -fx-padding: 20 24 8 24;
+}
+.modal-body {
+    -fx-padding: 8 24 16 24;
+}
+.modal-footer {
+    -fx-padding: 16 24 20 24;
+    -fx-background-color: -color-border-soft, -color-bg-elevated;
+    -fx-background-insets: 0, 1 0 0 0;
+    -fx-background-radius: 0 0 11 11;
+}
+
+/* Tile — used inside dialogs and the results view to group fields */
+.tile {
+    -fx-background-color: -color-border-soft, -color-surface;
+    -fx-background-insets: 0, 1;
+    -fx-background-radius: 8, 7;
+    -fx-padding: 14 16;
+}
+/* A TextArea inside a tile is transparent so the tile itself reads as
+   the input surface; otherwise we'd double-border. */
+.tile > .text-area,
+.tile .text-area {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+}
+.tile .text-area > .scroll-pane,
+.tile .text-area > .scroll-pane > .viewport,
+.tile .text-area > .scroll-pane .content {
+    -fx-background-color: transparent;
+}
+.tile .text-area:focused {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+}
+
+/* Validation error inline */
+.field-error {
+    -fx-text-fill: -color-danger;
+    -fx-font-size: 11.5px;
+}
+
+/* -------------------------------------------------------------
+   14. TOOLTIPS + JAVAFX DEFAULT ALERTS
+   ------------------------------------------------------------- */
+.tooltip {
+    -fx-background-color: -color-border, -color-surface-3;
+    -fx-background-insets: 0, 1;
+    -fx-background-radius: 6, 5;
+    -fx-text-fill: -color-text;
+    -fx-font-size: 11.5px;
+    -fx-padding: 6 10;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 12, 0.1, 0, 4);
+}
+
+.dialog-pane {
+    -fx-background-color: -color-bg-elevated;
+    -fx-border-color: -color-border;
+    -fx-border-width: 1;
+}
+.dialog-pane > .header-panel {
+    -fx-background-color: -color-bg-elevated;
+    -fx-padding: 18 24 12 24;
+}
+.dialog-pane > .header-panel .label {
+    -fx-font-family: -font-display;
+    -fx-font-size: 18px;
+    -fx-text-fill: -color-text;
+}
+.dialog-pane > .content {
+    -fx-padding: 4 24 18 24;
+}
+.dialog-pane > .content .label,
+.dialog-pane .content-text {
+    -fx-text-fill: -color-text-muted;
+    -fx-font-size: 13px;
+}
+.dialog-pane > .button-bar {
+    -fx-background-color: -color-border-soft, -color-bg-elevated;
+    -fx-background-insets: 0, 1 0 0 0;
+    -fx-padding: 12 16;
+}
+.dialog-pane .button-bar .button {
+    -fx-min-width: 80;
+}
+
+/* -------------------------------------------------------------
+   15. HELP WINDOW HEADER/FOOTER
+   ------------------------------------------------------------- */
+.help-bar {
+    -fx-background-color: -color-bg-elevated;
+}
+.help-bar-top {
+    -fx-border-color: -color-border-soft;
+    -fx-border-width: 0 0 1 0;
+}
+.help-bar-bottom {
+    -fx-border-color: -color-border-soft;
+    -fx-border-width: 1 0 0 0;
+}
+
+/* -------------------------------------------------------------
+   16. HERO STRIP (top of canvas)
+   ------------------------------------------------------------- */
+.hero-eyebrow {
+    -fx-font-family: -font-sans;
+    -fx-font-size: 10px;
+    -fx-font-weight: 700;
+    -fx-text-fill: -color-accent;
+}
+
+/* The serif app mark in the sidebar header */
+.brand-mark {
+    -fx-font-family: -font-display;
+    -fx-font-size: 21px;
+    -fx-font-weight: 600;
+    -fx-text-fill: -color-text;
+}
+.brand-mark-accent {
+    -fx-font-family: -font-display;
+    -fx-font-size: 21px;
+    -fx-font-style: italic;
+    -fx-text-fill: -color-accent;
+}

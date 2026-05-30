@@ -85,11 +85,20 @@ public class ExecutionEngine {
                             ? config.getRelativeExecutablePath() : "output")
                     .getAbsolutePath();
 
-            // Find the source file (recursive search inside extractedDir)
+            // Find the source file (recursive search inside extractedDir).
+            // If it doesn't exist, fail fast with a clear message — otherwise gcc
+            // emits a cryptic "cc1.exe: fatal error: ... compilation terminated"
+            // which is unhelpful for diagnosing what the student actually shipped.
             File sourceFile = findFile(workingDirectory, config.getFileToCompile());
-            String sourcePath = sourceFile != null
-                    ? sourceFile.getAbsolutePath()
-                    : new File(workingDirectory, config.getFileToCompile()).getAbsolutePath();
+            if (sourceFile == null || !sourceFile.isFile()) {
+                return new CompileResult(false,
+                        "Required source file '" + config.getFileToCompile()
+                        + "' was not found anywhere inside the submission.\n"
+                        + "Check that the ZIP contains a file with that exact name "
+                        + "(beware of Windows hiding the .txt extension on files "
+                        + "saved from Notepad).");
+            }
+            String sourcePath = sourceFile.getAbsolutePath();
 
             // Substitute placeholders in compileArgs
             String expandedArgs = (config.getCompileArgs() != null ? config.getCompileArgs() : "")
@@ -232,11 +241,15 @@ public class ExecutionEngine {
                     continue;
                 }
 
-                // Require exactly a 9-digit student ID per the SDD; otherwise SKIPPED.
-                if (submission.getStudentId() == null || !submission.getStudentId().matches("\\d{9}")) {
+                // Require exactly a STUDENT_ID_LENGTH-digit student ID per the SDD;
+                // otherwise SKIPPED. Pattern is owned by ZipProcessor so the regex
+                // never drifts between extraction and validation.
+                if (submission.getStudentId() == null
+                        || !ZipProcessor.STUDENT_ID_PATTERN.matcher(submission.getStudentId()).matches()) {
                     result.setStatus(SubmissionStatus.SKIPPED);
                     result.setErrorMessage(
-                            "Filename does not encode a 9-digit student ID — manual review required");
+                            "Filename does not encode a " + ZipProcessor.STUDENT_ID_LENGTH
+                                    + "-digit student ID — manual review required");
                     results.add(result);
                     notifyObservers(result);
                     continue;

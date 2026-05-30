@@ -7,35 +7,27 @@
 
 <!--
     HelpWindow.fxml  —  User Manual window (WebView).
-    Controller: com.ce316.iae.ui.HelpWindowController
-    Resource:   src/main/resources/help/index.html
 -->
 <VBox xmlns="http://javafx.com/javafx/17"
       xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.ce316.iae.ui.HelpWindowController"
-      prefWidth="860" prefHeight="620">
+      prefWidth="940" prefHeight="680">
 
-    <!-- ── Header ── -->
-    <HBox style="-fx-background-color: #f0f0f0;
-                 -fx-border-color: #cccccc;
-                 -fx-border-width: 0 0 1 0;
-                 -fx-padding: 8 12 8 12;"
-          alignment="CENTER_LEFT" spacing="8">
-        <Label text="❓  IAE User Manual"
-               style="-fx-font-size: 13px; -fx-font-weight: bold;"/>
+    <!-- ── Header bar ── -->
+    <HBox alignment="CENTER_LEFT" spacing="14" styleClass="help-bar,help-bar-top">
+        <padding><Insets top="14" right="22" bottom="14" left="22"/></padding>
+        <Label text="MANUAL" styleClass="label-overline"/>
+        <Label text="IAE — User Manual" styleClass="display-md"/>
+        <Region HBox.hgrow="ALWAYS"/>
     </HBox>
 
     <!-- ── WebView fills remaining space ── -->
     <WebView fx:id="helpWebView" VBox.vgrow="ALWAYS"/>
 
     <!-- ── Footer ── -->
-    <HBox style="-fx-background-color: #f0f0f0;
-                 -fx-border-color: #cccccc;
-                 -fx-border-width: 1 0 0 0;
-                 -fx-padding: 6 12 6 12;"
-          alignment="CENTER_RIGHT">
-        <Button text="Close" onAction="#handleClose"
-                style="-fx-font-size: 12px; -fx-padding: 4 16 4 16;"/>
+    <HBox alignment="CENTER_RIGHT" spacing="10" styleClass="help-bar,help-bar-bottom">
+        <padding><Insets top="10" right="22" bottom="10" left="22"/></padding>
+        <Button text="Close" onAction="#handleClose" styleClass="btn-ghost"/>
     </HBox>
 
 </VBox>

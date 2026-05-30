@@ -7,19 +7,27 @@ import com.ce316.iae.model.StudentResult;
 import com.ce316.iae.persistence.PersistenceManager;
 import com.ce316.iae.service.ConfigurationManager;
 import com.ce316.iae.service.ProjectManager;
+import javafx.animation.FadeTransition;
+import javafx.animation.Interpolator;
+import javafx.animation.ParallelTransition;
+import javafx.animation.ScaleTransition;
+import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
+import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.web.WebView;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 import java.io.File;
 import java.io.IOException;
@@ -67,6 +75,30 @@ public class MainWindowController {
     @FXML
     private ComboBox<String> reportHistoryComboBox;
 
+    /** Hero title — large serif headline above the results canvas. */
+    @FXML
+    private Label heroTitleLabel;
+
+    /** 8x8 pulse dot in the hero strip; pseudo-classes drive its color. */
+    @FXML
+    private Region statusDot;
+
+    /** Floating accent CTA — disabled while a run is in flight. */
+    @FXML
+    private Button runButton;
+
+    /** Sidebar container — used for the entry slide-in. */
+    @FXML
+    private VBox sidebarVBox;
+
+    private static final PseudoClass PC_IDLE    = PseudoClass.getPseudoClass("idle");
+    private static final PseudoClass PC_RUNNING = PseudoClass.getPseudoClass("running");
+    private static final PseudoClass PC_OK      = PseudoClass.getPseudoClass("ok");
+    private static final PseudoClass PC_ERROR   = PseudoClass.getPseudoClass("error");
+
+    /** Indefinite scale pulse animation on the status dot while running. */
+    private ScaleTransition dotPulse;
+
     // ---------------------------------------------------------------
     // Service layer
     // ---------------------------------------------------------------
@@ -78,7 +110,7 @@ public class MainWindowController {
     /** Currently selected/loaded project. */
     private Project currentProject;
 
-    /** Guards against double-clicks on Run while a task is already executing. */
+    /** Guards against accelerator-key double-fire while a task is running. */
     private boolean runInProgress = false;
 
     // ---------------------------------------------------------------
@@ -98,8 +130,9 @@ public class MainWindowController {
     @FXML
     public void initialize() {
         statusProgressBar.setVisible(false);
+        statusProgressBar.setManaged(false);
+        setDotState(PC_IDLE);
 
-        // Render projects as "id — name"
         projectsListView.setCellFactory(lv -> new ListCell<>() {
             @Override
             protected void updateItem(Project p, boolean empty) {
@@ -108,7 +141,6 @@ public class MainWindowController {
             }
         });
 
-        // Selection in the project list drives currentProject + detail pane
         projectsListView.getSelectionModel().selectedItemProperty()
                 .addListener((obs, oldP, newP) -> {
                     if (newP != null) {
@@ -118,7 +150,66 @@ public class MainWindowController {
 
         refreshProjectList();
         refreshProjectPanel();
-        setStatus("Ready.");
+        setStatus("Ready");
+
+        // Pre-set the offstage state for the entry reveal so there's no flash
+        // of the final layout before the animation begins.
+        primeEntryState();
+
+        runButton.sceneProperty().addListener((obs, oldScene, newScene) -> {
+            if (newScene != null) Platform.runLater(this::playEntryReveal);
+        });
+    }
+
+    /** Place the three reveal targets in their offstage positions. */
+    private void primeEntryState() {
+        heroTitleLabel.setOpacity(0);
+        heroTitleLabel.setTranslateY(8);
+        runButton.setOpacity(0);
+        runButton.setScaleX(0.92);
+        runButton.setScaleY(0.92);
+        sidebarVBox.setOpacity(0);
+        sidebarVBox.setTranslateX(-20);
+    }
+
+    /**
+     * Editorial cascade — three beats:
+     *   0ms   hero      fade + lift  (320ms)
+     *   180ms run pill  fade + scale (220ms)
+     *   320ms sidebar   fade + slide (260ms)
+     */
+    private void playEntryReveal() {
+        // Beat 1 — hero rises
+        FadeTransition heroFade = new FadeTransition(Duration.millis(320), heroTitleLabel);
+        heroFade.setFromValue(0); heroFade.setToValue(1);
+        heroFade.setInterpolator(Interpolator.EASE_OUT);
+        TranslateTransition heroLift = new TranslateTransition(Duration.millis(320), heroTitleLabel);
+        heroLift.setFromY(8); heroLift.setToY(0);
+        heroLift.setInterpolator(Interpolator.EASE_OUT);
+        new ParallelTransition(heroFade, heroLift).play();
+
+        // Beat 2 — run pill scales in
+        FadeTransition pillFade = new FadeTransition(Duration.millis(220), runButton);
+        pillFade.setFromValue(0); pillFade.setToValue(1);
+        pillFade.setInterpolator(Interpolator.EASE_OUT);
+        ScaleTransition pillScale = new ScaleTransition(Duration.millis(220), runButton);
+        pillScale.setFromX(0.92); pillScale.setFromY(0.92);
+        pillScale.setToX(1.0);    pillScale.setToY(1.0);
+        pillScale.setInterpolator(Interpolator.EASE_OUT);
+        ParallelTransition pillIn = new ParallelTransition(pillFade, pillScale);
+        pillIn.setDelay(Duration.millis(180));
+        pillIn.play();
+
+        // Beat 3 — sidebar slides in
+        FadeTransition sideFade = new FadeTransition(Duration.millis(260), sidebarVBox);
+        sideFade.setFromValue(0); sideFade.setToValue(1);
+        sideFade.setInterpolator(Interpolator.EASE_OUT);
+        TranslateTransition sideSlide = new TranslateTransition(Duration.millis(260), sidebarVBox);
+        sideSlide.setFromX(-20); sideSlide.setToX(0);
+        sideSlide.setInterpolator(Interpolator.EASE_OUT);
+        ParallelTransition sideIn = new ParallelTransition(sideFade, sideSlide);
+        sideIn.setDelay(Duration.millis(320));
+        sideIn.play();
     }
 
     // ---------------------------------------------------------------
@@ -176,9 +267,10 @@ public class MainWindowController {
         }
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
         confirm.setTitle("Delete Project");
-        confirm.setHeaderText(null);
+        confirm.setHeaderText("Delete this project?");
         confirm.setContentText("Permanently delete \"" + currentProject.getName()
-                + "\" and all its reports?");
+                + "\" and all its reports? This cannot be undone.");
+        ThemeManager.apply(confirm);
         if (confirm.showAndWait().filter(b -> b == ButtonType.OK).isEmpty())
             return;
 
@@ -241,6 +333,7 @@ public class MainWindowController {
                 configs.stream().map(Configuration::getName).toArray(String[]::new));
         pick.setTitle("Export Configuration");
         pick.setHeaderText("Select the configuration to export:");
+        ThemeManager.apply(pick);
         Optional<String> chosen = pick.showAndWait();
         if (chosen.isEmpty())
             return;
@@ -271,7 +364,7 @@ public class MainWindowController {
     // HELP MENU
     // ---------------------------------------------------------------
 
-    /** Opens the bundled user manual inside a WebView window. */
+    /** Opens the bundled user manual via the styled HelpWindow shell. */
     @FXML
     private void handleUserManual() {
         try {
@@ -280,12 +373,15 @@ public class MainWindowController {
                 showInfo("User manual not bundled in this build.");
                 return;
             }
-            WebView view = new WebView();
-            view.getEngine().load(manual.toExternalForm());
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource("/fxml/HelpWindow.fxml"));
+            Parent root = loader.load();
             Stage stage = new Stage();
             stage.setTitle("IAE — User Manual");
             stage.initOwner(getStage());
-            stage.setScene(new Scene(view, 900, 650));
+            Scene manualScene = new Scene(root);
+            ThemeManager.apply(manualScene);
+            stage.setScene(manualScene);
             stage.show();
         } catch (Exception e) {
             showError("Cannot open manual", e.getMessage());
@@ -301,6 +397,7 @@ public class MainWindowController {
                 "IAE automates grading of student code submissions.\n\n"
                         + "Compile → Run → Compare pipeline with SQLite persistence.\n\n"
                         + "CE316 Project — 2025");
+        ThemeManager.apply(about);
         about.showAndWait();
     }
 
@@ -351,19 +448,23 @@ public class MainWindowController {
         statusLabel.textProperty().bind(task.messageProperty());
         statusProgressBar.progressProperty().bind(task.progressProperty());
         statusProgressBar.setVisible(true);
+        statusProgressBar.setManaged(true);
+        if (runButton != null) runButton.setDisable(true);
+        setDotState(PC_RUNNING);
+        startDotPulse();
         runInProgress = true;
 
         task.setOnSucceeded(event -> Platform.runLater(() -> {
-            cleanupAfterRun();
+            cleanupAfterRun(PC_OK);
             Report report = task.getValue();
             if (report != null) {
                 setStatus(report.getSummary());
             }
-            refreshProjectList(); // refresh so the latest report is reflected
+            refreshProjectList();
         }));
 
         task.setOnFailed(event -> Platform.runLater(() -> {
-            cleanupAfterRun();
+            cleanupAfterRun(PC_ERROR);
             String msg = task.getException() != null
                     ? task.getException().getMessage()
                     : "Unknown error";
@@ -376,12 +477,53 @@ public class MainWindowController {
         t.start();
     }
 
-    private void cleanupAfterRun() {
+    private void cleanupAfterRun(PseudoClass terminalState) {
         statusLabel.textProperty().unbind();
         statusProgressBar.progressProperty().unbind();
         statusProgressBar.setVisible(false);
+        statusProgressBar.setManaged(false);
+        stopDotPulse();
+        setDotState(terminalState);
+        if (runButton != null) runButton.setDisable(false);
         projectManager.getExecutionEngine().clearObservers();
         runInProgress = false;
+    }
+
+    /** Toggle exactly one custom pseudo-class on the status dot. */
+    private void setDotState(PseudoClass active) {
+        if (statusDot == null) return;
+        statusDot.pseudoClassStateChanged(PC_IDLE,    active == PC_IDLE);
+        statusDot.pseudoClassStateChanged(PC_RUNNING, active == PC_RUNNING);
+        statusDot.pseudoClassStateChanged(PC_OK,      active == PC_OK);
+        statusDot.pseudoClassStateChanged(PC_ERROR,   active == PC_ERROR);
+    }
+
+    /**
+     * Soft, indefinite scale pulse on the status dot.
+     * 1.0 → 1.5 → 1.0 over 900ms, eased — communicates aliveness without
+     * the jitter of a hard blink.
+     */
+    private void startDotPulse() {
+        if (statusDot == null) return;
+        stopDotPulse();
+        dotPulse = new ScaleTransition(Duration.millis(900), statusDot);
+        dotPulse.setFromX(1.0);  dotPulse.setFromY(1.0);
+        dotPulse.setToX(1.5);    dotPulse.setToY(1.5);
+        dotPulse.setAutoReverse(true);
+        dotPulse.setCycleCount(ScaleTransition.INDEFINITE);
+        dotPulse.setInterpolator(Interpolator.EASE_BOTH);
+        dotPulse.play();
+    }
+
+    private void stopDotPulse() {
+        if (dotPulse != null) {
+            dotPulse.stop();
+            dotPulse = null;
+        }
+        if (statusDot != null) {
+            statusDot.setScaleX(1.0);
+            statusDot.setScaleY(1.0);
+        }
     }
 
     @FXML
@@ -433,25 +575,39 @@ public class MainWindowController {
     }
 
     /**
-     * Loads the most recent report for the project and pushes its results into the
-     * table.
+     * Loads the most recent report for the project and pushes its results into
+     * the table. Also rebuilds the run-history dropdown.
+     *
+     * NB: the setOnAction handler is detached before items are mutated; otherwise
+     * the previous closure (capturing a stale `allReports` from the prior project)
+     * would fire during selectFirst() and load the wrong report into the table.
      */
     private void displayLatestReport(int projectId) {
         if (resultsViewController == null) return;
         resultsViewController.clearResults();
 
+        if (reportHistoryComboBox != null) {
+            // Detach handler before mutating items so transient selection
+            // changes during clear/selectFirst don't fire with stale data.
+            reportHistoryComboBox.setOnAction(null);
+            reportHistoryComboBox.getItems().clear();
+        }
+
         List<Report> allReports = projectManager.getReportManager().loadAllReports(projectId);
-        if (allReports.isEmpty()) return;
+        if (allReports.isEmpty()) {
+            if (reportHistoryComboBox != null) {
+                reportHistoryComboBox.setPromptText("No previous runs yet");
+            }
+            return;
+        }
 
         if (reportHistoryComboBox != null) {
-            reportHistoryComboBox.getItems().clear();
             for (Report r : allReports) {
-                reportHistoryComboBox.getItems().add(
-                        r.getTimestamp().toString().replace("T", " ").substring(0, 19)
-                                + "  (" + r.getSuccessCount() + "/" + r.getTotalCount() + " passed)"
-                );
+                reportHistoryComboBox.getItems().add(formatReportLabel(r));
             }
             reportHistoryComboBox.getSelectionModel().selectFirst();
+            // Re-attach handler AFTER the initial selection. Closure binds
+            // this call's `allReports`, never the one from an earlier call.
             reportHistoryComboBox.setOnAction(e -> {
                 int idx = reportHistoryComboBox.getSelectionModel().getSelectedIndex();
                 if (idx >= 0 && idx < allReports.size()) {
@@ -463,30 +619,43 @@ public class MainWindowController {
         loadReportById(allReports.get(0).getId());
     }
 
+    /** "2026-05-30 14:23:45  ·  12 / 15 passed" — readable, monospaced-friendly. */
+    private String formatReportLabel(Report r) {
+        String ts = r.getTimestamp().toString().replace("T", " ");
+        if (ts.length() > 19) ts = ts.substring(0, 19);
+        return ts + "  ·  " + r.getSuccessCount() + " / " + r.getTotalCount() + " passed";
+    }
+
     private void loadReportById(int reportId) {
         if (resultsViewController == null) return;
         resultsViewController.clearResults();
-        projectManager.getReportManager().loadReportById(reportId).ifPresent(report -> {
-            for (StudentResult r : report.getResults()) {
-                resultsViewController.onStudentProcessed(r);
-            }
-        });
+        try {
+            projectManager.getReportManager().loadReportById(reportId).ifPresent(report -> {
+                for (StudentResult r : report.getResults()) {
+                    resultsViewController.onStudentProcessed(r);
+                }
+            });
+        } catch (Exception e) {
+            setStatus("Could not load report: " + e.getMessage());
+        }
     }
 
-    /** Refreshes the left-panel detail rows for the currentProject. */
+    /** Refreshes the left-panel detail rows + hero title for the currentProject. */
     private void refreshProjectPanel() {
         projectInfoListView.getItems().clear();
         if (currentProject == null) {
-            projectInfoListView.getItems().add("No project selected.");
+            projectInfoListView.getItems().add("— no project selected —");
+            if (heroTitleLabel != null) heroTitleLabel.setText("Select a project");
             return;
         }
+        if (heroTitleLabel != null) heroTitleLabel.setText(currentProject.getName());
         projectInfoListView.getItems().addAll(
-                "Name   : " + currentProject.getName(),
-                "Config : " + (currentProject.getConfiguration() != null
+                "Name   · " + currentProject.getName(),
+                "Config · " + (currentProject.getConfiguration() != null
                         ? currentProject.getConfiguration().getName()
                         : "— none —"),
-                "Dir    : " + currentProject.getSubmissionsDirectory(),
-                "Tests  : " + currentProject.getTestCases().size() + " test case(s)");
+                "Dir    · " + currentProject.getSubmissionsDirectory(),
+                "Tests  · " + currentProject.getTestCases().size() + " case(s)");
     }
 
     /** Opens the ProjectDialogController in a modal window. */
@@ -503,7 +672,9 @@ public class MainWindowController {
             dialog.setTitle(existing == null ? "New Project" : "Edit Project");
             dialog.initModality(Modality.WINDOW_MODAL);
             dialog.initOwner(getStage());
-            dialog.setScene(new Scene(root));
+            Scene scene = new Scene(root);
+            ThemeManager.apply(scene);
+            dialog.setScene(scene);
             dialog.showAndWait();
 
             Project committed = ctrl.getCommittedProject();
@@ -539,7 +710,9 @@ public class MainWindowController {
             dialog.setTitle("Manage Configurations");
             dialog.initModality(Modality.WINDOW_MODAL);
             dialog.initOwner(getStage());
-            dialog.setScene(new Scene(root));
+            Scene scene = new Scene(root);
+            ThemeManager.apply(scene);
+            dialog.setScene(scene);
             dialog.showAndWait();
         } catch (IOException e) {
             showError("Cannot open Configuration dialog", e.getMessage());
@@ -561,8 +734,9 @@ public class MainWindowController {
     private void showError(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle(title);
-        alert.setHeaderText(null);
+        alert.setHeaderText(title);
         alert.setContentText(message != null ? message : "Unknown error.");
+        ThemeManager.apply(alert);
         alert.showAndWait();
     }
 
@@ -571,6 +745,7 @@ public class MainWindowController {
         alert.setTitle("Information");
         alert.setHeaderText(null);
         alert.setContentText(message);
+        ThemeManager.apply(alert);
         alert.showAndWait();
     }
 }
